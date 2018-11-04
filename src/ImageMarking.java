@@ -47,7 +47,7 @@ public class ImageMarking extends Application {
 
     ImageView imageView = new ImageView();
     Scene scene;
-    mProperty property = new mProperty();
+    mProperty imageProperty = new mProperty();
 
     @Override
     public void start(Stage primaryStage) {
@@ -78,19 +78,19 @@ public class ImageMarking extends Application {
         });
 
         imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, (event -> {
-            property.setScreenX(event.getScreenX());
-            property.setScreenY(event.getScreenY());
-            property.setX(imageView.getX());
-            property.setY(imageView.getY());
+            imageProperty.setScreenX(event.getScreenX());
+            imageProperty.setScreenY(event.getScreenY());
+            imageProperty.setX(imageView.getX());
+            imageProperty.setY(imageView.getY());
         }));
 
         imageView.addEventFilter(MouseEvent.MOUSE_DRAGGED, (event) -> {
             double newX = event.getScreenX(), newY = event.getScreenY();
-            double oldX = property.getScreenX(), oldY = property.getScreenY();
-            imageView.setTranslateX(newX - oldX + property.getX());
-            imageView.setTranslateY(newY - oldY + property.getY());
-            imageView.setX(newX - oldX + property.getX());
-            imageView.setY(newY - oldY + property.getY());
+            double oldX = imageProperty.getScreenX(), oldY = imageProperty.getScreenY();
+            imageView.setTranslateX(newX - oldX + imageProperty.getX());
+            imageView.setTranslateY(newY - oldY + imageProperty.getY());
+            imageView.setX(newX - oldX + imageProperty.getX());
+            imageView.setY(newY - oldY + imageProperty.getY());
             event.consume();
         });
 
