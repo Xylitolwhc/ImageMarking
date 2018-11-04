@@ -1,3 +1,4 @@
+import POJO.mProperty;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -46,7 +47,7 @@ public class ImageMarking extends Application {
 
     ImageView imageView = new ImageView();
     Scene scene;
-    Property property = new Property();
+    mProperty property = new mProperty();
 
     @Override
     public void start(Stage primaryStage) {
@@ -292,39 +293,4 @@ public class ImageMarking extends Application {
         primaryStage.show();
     }
 
-    class Property {
-        double screenX, screenY, x, y;
-
-        public double getScreenX() {
-            return screenX;
-        }
-
-        public void setScreenX(double screenX) {
-            this.screenX = screenX;
-        }
-
-        public double getScreenY() {
-            return screenY;
-        }
-
-        public void setScreenY(double screenY) {
-            this.screenY = screenY;
-        }
-
-        public double getX() {
-            return x;
-        }
-
-        public void setX(double x) {
-            this.x = x;
-        }
-
-        public double getY() {
-            return y;
-        }
-
-        public void setY(double y) {
-            this.y = y;
-        }
-    }
 }
