@@ -2,6 +2,9 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.beans.Observable;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -10,10 +13,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.*;
+import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -26,57 +33,129 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.io.File;
 
 import static java.lang.StrictMath.random;
 
 public class ImageMarking extends Application {
 
+    ImageView imageView = new ImageView();
+    Scene scene;
+    Property property = new Property();
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Test");
-        String uri = getImage();
-        ImageView imageView = drawImage(uri);
+        Image image = new Image("https://docs.oracle.com/javafx/javafx/images/javafx-documentation.png");
+        imageView.preserveRatioProperty().set(true);
+        imageView.setImage(image);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setVgap(10);
+        gridPane.setHgap(10);
+
+        DoubleProperty zoomProperty = new SimpleDoubleProperty(200);
+        zoomProperty.addListener((Observable arg0) -> {
+            imageView.setFitWidth(zoomProperty.get());
+            imageView.setFitHeight(zoomProperty.get());
+        });
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(imageView);
+        scrollPane.addEventFilter(ScrollEvent.ANY, (ScrollEvent event) -> {
+            if (event.getDeltaY() > 0) {
+                zoomProperty.set(zoomProperty.get() * 1.2);
+            } else if (event.getDeltaY() < 0) {
+                zoomProperty.set(zoomProperty.get() / 1.1);
+            }
+        });
+
+        imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, (event -> {
+            property.setScreenX(event.getScreenX());
+            property.setScreenY(event.getScreenY());
+            property.setX(imageView.getX());
+            property.setY(imageView.getY());
+        }));
+
+        imageView.addEventFilter(MouseEvent.MOUSE_DRAGGED, (event) -> {
+            double newX = event.getScreenX(), newY = event.getScreenY();
+            double oldX = property.getScreenX(), oldY = property.getScreenY();
+            imageView.setTranslateX(newX - oldX + property.getX());
+            imageView.setTranslateY(newY - oldY + property.getY());
+            imageView.setX(newX - oldX + property.getX());
+            imageView.setY(newY - oldY + property.getY());
+            event.consume();
+        });
+
+        Button button = new Button();
+        button.setText("Open");
+        button.setOnAction((e) -> {
+            String newUrl = getImage(primaryStage);
+            if (newUrl != null) {
+                Image newImage = new Image(newUrl);
+                imageView.setImage(newImage);
+            }
+        });
+
+        gridPane.add(button, 0, 0);
+        gridPane.add(scrollPane, 0, 1);
 
         // 在屏幕上显示图像
         StackPane root = new StackPane();
-        root.getChildren().add(imageView);
-        Scene scene = new Scene(root, 300, 250);
+        root.getChildren().add(gridPane);
+
+        Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
+        scene = new Scene(root, scrSize.getWidth() / 1.2, scrSize.getHeight() / 1.2);
+//        scene = new Scene(root);
         primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
         primaryStage.show();
     }
 
-    private String getImage() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory()
-                        || f.getName().toLowerCase().endsWith(".jpg")
-                        || f.getName().toLowerCase().endsWith(".jpeg")
-                        || f.getName().toLowerCase().endsWith(".png")
-                        || f.getName().toLowerCase().endsWith(".gif")
-                        || f.getName().toLowerCase().endsWith(".bmp");
-            }
-
-            @Override
-            public String getDescription() {
-                return "*.jpg;*.jpeg;*.png;*.gif;*.bmp";
-            }
-        });
-        fileChooser.showOpenDialog(new JLabel());
-        File file = fileChooser.getSelectedFile();
-        if (file != null) {
-            System.out.println("文件:" + file.getAbsolutePath());
-            System.out.println(fileChooser.getSelectedFile().getName());
-            return file.toURI().toString();
-        } else return null;
+    private String getImage(Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Picture");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("IMAGE", "*.bmp", "*.gif", "*.jpg", "*.jpeg", "*.png"),
+                new FileChooser.ExtensionFilter("BMP", "*.bmp"),
+                new FileChooser.ExtensionFilter("GIF", "*.gif"),
+                new FileChooser.ExtensionFilter("JPEG", "*.jpg", "*.jpeg"),
+                new FileChooser.ExtensionFilter("PNG", "*.png"),
+                new FileChooser.ExtensionFilter("All", "*.*")
+        );
+        File file = fileChooser.showOpenDialog(stage);
+        return file == null ? null : file.toURI().toString();
+//        JFileChooser fileChooser=new JFileChooser();
+//        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+//        fileChooser.setFileFilter(new FileFilter() {
+//            @Override
+//            public boolean accept(File f) {
+//                return f.isDirectory() ||
+//                        f.getName().toLowerCase().endsWith(".jpg") ||
+//                        f.getName().toLowerCase().endsWith(".jpeg") ||
+//                        f.getName().toLowerCase().endsWith(".png") ||
+//                        f.getName().toLowerCase().endsWith(".gif") ||
+//                        f.getName().toLowerCase().endsWith(".bmp");
+//            }
+//
+//            @Override
+//            public String getDescription() {
+//                return "*.jpg;*.jpeg;*.png;*.gif;*.bmp";
+//            }
+//        });
+//        fileChooser.showOpenDialog(new JLabel());
+//        File file = fileChooser.getSelectedFile();
+//        if (file != null) {
+//            System.out.println("文件:" + file.getAbsolutePath());
+//            System.out.println(fileChooser.getSelectedFile().getName());
+//            return file.toURI().toString();
+//        } else return null;
     }
 
     private ImageView drawImage(String uri) {
@@ -91,9 +170,9 @@ public class ImageMarking extends Application {
         System.out.println("Pixel Format: " + pixelReader.getPixelFormat());
 
         // 确定图片中每一个像素的颜色
-        for (int readY = 0; readY < image.getHeight(); readY++) {
-            for (int readX = 0; readX < image.getWidth(); readX++) {
-                Color color = pixelReader.getColor(readX, readY);
+//        for (int readY = 0; readY < image.getHeight(); readY++) {
+//            for (int readX = 0; readX < image.getWidth(); readX++) {
+//                Color color = pixelReader.getColor(readX, readY);
 //                System.out.println("\nPixel color at coordinates ("
 //                        + readX + "," + readY + ") "
 //                        + color.toString());
@@ -102,8 +181,8 @@ public class ImageMarking extends Application {
 //                System.out.println("B = " + color.getBlue());
 //                System.out.println("Opacity = " + color.getOpacity());
 //                System.out.println("Saturation = " + color.getSaturation());
-            }
-        }
+//            }
+//        }
         return imageView;
     }
 
@@ -211,5 +290,41 @@ public class ImageMarking extends Application {
         timeline.play();
 
         primaryStage.show();
+    }
+
+    class Property {
+        double screenX, screenY, x, y;
+
+        public double getScreenX() {
+            return screenX;
+        }
+
+        public void setScreenX(double screenX) {
+            this.screenX = screenX;
+        }
+
+        public double getScreenY() {
+            return screenY;
+        }
+
+        public void setScreenY(double screenY) {
+            this.screenY = screenY;
+        }
+
+        public double getX() {
+            return x;
+        }
+
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public void setY(double y) {
+            this.y = y;
+        }
     }
 }
