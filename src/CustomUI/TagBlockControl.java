@@ -2,10 +2,16 @@ package CustomUI;
 
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
+import javafx.scene.control.Skin;
 
 public class TagBlockControl extends Control {
     public TagBlockControl() {
 
+    }
+
+    @Override
+    protected Skin<?> createDefaultSkin() {
+        return new TagBlockSkin(this);
     }
 
     @Override

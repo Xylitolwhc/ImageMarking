@@ -1,3 +1,4 @@
+import CustomUI.TagBlockControl;
 import POJO.mProperty;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -107,13 +108,14 @@ public class ImageMarking extends Application {
         gridPane.add(button, 0, 0);
         gridPane.add(scrollPane, 0, 1);
 
+        TagBlockControl tagBlock = new TagBlockControl();
         // 在屏幕上显示图像
         StackPane root = new StackPane();
-        root.getChildren().add(gridPane);
+        root.getChildren().add(tagBlock);
 
         Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
-        scene = new Scene(root, scrSize.getWidth() / 1.2, scrSize.getHeight() / 1.2);
-//        scene = new Scene(root);
+//        scene = new Scene(root, scrSize.getWidth() / 1.2, scrSize.getHeight() / 1.2);
+        scene = new Scene(root, 500, 500);
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.show();
