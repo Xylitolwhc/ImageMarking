@@ -109,13 +109,26 @@ public class ImageMarking extends Application {
         gridPane.add(scrollPane, 0, 1);
 
         TagBlockControl tagBlock = new TagBlockControl();
+//        tagBlock.setOnAction((event -> {
+//            System.out.println(tagBlock);
+//            tagBlock.updateBlock(tagBlock.getX(), tagBlock.getY(), tagBlock.getTagWidth() + 10, tagBlock.getTagHeight() + 10);
+//            event.consume();
+//        }));
+
         // 在屏幕上显示图像
         StackPane root = new StackPane();
+        root.setAlignment(Pos.TOP_LEFT);
+        root.setOnMouseClicked((e) -> {
+            System.out.println(e.getX() + " " + e.getY());
+            TagBlockControl tagBlockControl = new TagBlockControl(e.getX(), e.getY(), e.getX(), e.getY());
+            root.getChildren().add(tagBlockControl);
+        });
         root.getChildren().add(tagBlock);
 
+
         Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
-//        scene = new Scene(root, scrSize.getWidth() / 1.2, scrSize.getHeight() / 1.2);
-        scene = new Scene(root, 500, 500);
+        scene = new Scene(root, scrSize.getWidth() / 1.2, scrSize.getHeight() / 1.2);
+//        scene = new Scene(root, 500, 500);
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.show();
