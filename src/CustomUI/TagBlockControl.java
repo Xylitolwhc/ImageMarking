@@ -7,12 +7,13 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
+import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 
 
 public class TagBlockControl extends Control {
-    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight;
+    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding;
 
     private void init() {
         this.x = new SimpleDoubleProperty();
@@ -23,6 +24,8 @@ public class TagBlockControl extends Control {
         this.tagY = new SimpleDoubleProperty();
         this.tagWidth = new SimpleDoubleProperty();
         this.tagHeight = new SimpleDoubleProperty();
+        this.tagWidthPadding = new SimpleDoubleProperty();
+        this.tagHeightPadding = new SimpleDoubleProperty();
     }
 
     public TagBlockControl() {
@@ -43,7 +46,19 @@ public class TagBlockControl extends Control {
         this.tagY.setValue(y);
         this.tagWidth.setValue(width);
         this.tagHeight.setValue(height);
+        tagWidthPadding.setValue(5);
+        tagHeightPadding.setValue(5);
         setSkin(createDefaultSkin());
+    }
+
+    public void updateBlock() {
+        ((TagBlockSkin) getSkin()).updateBlock();
+    }
+
+    public void updateBlock(double width, double height) {
+        this.width.setValue(width);
+        this.height.setValue(height);
+        updateBlock();
     }
 
     public void updateBlock(double x, double y, double width, double height) {
@@ -51,7 +66,7 @@ public class TagBlockControl extends Control {
         this.y.setValue(y);
         this.width.setValue(width);
         this.height.setValue(height);
-        ((TagBlockSkin) getSkin()).updateBlock();
+        updateBlock();
     }
 
     public Double getX() {
@@ -76,6 +91,24 @@ public class TagBlockControl extends Control {
 
     public Double getTagHeight() {
         return height.getValue();
+    }
+
+    public void setTagWidthPadding(double tagWidthPadding) {
+        this.tagWidthPadding.setValue(tagWidthPadding);
+        updateBlock();
+    }
+
+    public void setTagHeightPadding(double tagHeightPadding) {
+        this.tagHeightPadding.setValue(tagHeightPadding);
+        updateBlock();
+    }
+
+    public Double getTagWidthPadding() {
+        return tagWidthPadding.getValue();
+    }
+
+    public Double getTagHeightPadding() {
+        return tagHeightPadding.getValue();
     }
 
     public final ObjectProperty<EventHandler<ActionEvent>> onActionProperty() {

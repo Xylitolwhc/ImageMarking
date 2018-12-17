@@ -23,6 +23,7 @@ import javafx.scene.image.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -39,37 +40,39 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.awt.*;
+
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.StrictMath.random;
 
 public class ImageMarking extends Application {
-
-    ImageView imageView = new ImageView();
-    Scene scene;
     mProperty imageProperty = new mProperty();
+    mProperty mouseMovement = new mProperty();
+    Scene scene;
+    TagBlockControl selectedTagBlock;
+    List<TagBlockControl> tagBlocks = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Test");
+
+        /*
+         *创建图片显示图层
+         *默认使用javafx图片
+         */
         Image image = new Image("https://docs.oracle.com/javafx/javafx/images/javafx-documentation.png");
+        ImageView imageView = new ImageView();
         imageView.preserveRatioProperty().set(true);
         imageView.setImage(image);
-
-        GridPane gridPane = new GridPane();
-        gridPane.setAlignment(Pos.CENTER);
-        gridPane.setVgap(10);
-        gridPane.setHgap(10);
 
         DoubleProperty zoomProperty = new SimpleDoubleProperty(200);
         zoomProperty.addListener((Observable arg0) -> {
             imageView.setFitWidth(zoomProperty.get());
             imageView.setFitHeight(zoomProperty.get());
         });
-
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(imageView);
+/*
         scrollPane.addEventFilter(ScrollEvent.ANY, (ScrollEvent event) -> {
             if (event.getDeltaY() > 0) {
                 zoomProperty.set(zoomProperty.get() * 1.2);
@@ -94,7 +97,65 @@ public class ImageMarking extends Application {
             imageView.setY(newY - oldY + imageProperty.getY());
             event.consume();
         });
+*/
 
+
+        /*
+         *AnchorPane
+         *标记叠加层
+         */
+        AnchorPane anchorPane = new AnchorPane();
+//        anchorPane.setOnMouseClicked((e) -> {
+//            System.out.println(e.getX() + " " + e.getY());
+//            TagBlockControl tagBlockControl = new TagBlockControl(e.getX(), e.getY(), e.getX(), e.getY());
+//            tagBlockControl.setOnAction((event) -> {
+//                tagBlockControl.updateBlock(tagBlockControl.getTagWidth() + 10, tagBlockControl.getTagHeight() + 10);
+//            });
+//            anchorPane.getChildren().add(tagBlockControl);
+//            anchorPane.setTopAnchor(tagBlockControl, e.getY() - 5);
+//            anchorPane.setLeftAnchor(tagBlockControl, e.getX() - 5);
+//        });
+        anchorPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+            TagBlockControl newTagBlock = new TagBlockControl(e.getX(), e.getY());
+            anchorPane.setTopAnchor(newTagBlock, newTagBlock.getY() - 5);
+            anchorPane.setLeftAnchor(newTagBlock, newTagBlock.getX() - 5);
+            anchorPane.getChildren().add(newTagBlock);
+            selectedTagBlock = newTagBlock;
+            mouseMovement.setScreenX(e.getScreenX());
+            mouseMovement.setScreenY(e.getScreenY());
+        });
+        anchorPane.addEventHandler(MouseEvent.MOUSE_DRAGGED, (e) -> {
+            double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
+            selectedTagBlock.updateBlock(Math.abs(biasX), Math.abs(biasY));
+            if (biasX >= 0 && biasY >= 0) {
+                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() - 5);
+                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() - 5);
+            } else if (biasX < 0 && biasY >= 0) {
+                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() - 5);
+                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() + biasX - 5);
+            } else if (biasX >= 0 && biasY < 0) {
+                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() + biasY - 5);
+                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() - 5);
+            } else if (biasX < 0 && biasY < 0) {
+                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() + biasY - 5);
+                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() + biasX - 5);
+            }
+        });
+        anchorPane.addEventHandler(MouseEvent.MOUSE_RELEASED, (e) -> {
+            double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
+            if (Math.abs(biasX) < 5 || Math.abs(biasY) < 5) {
+                anchorPane.getChildren().remove(selectedTagBlock);
+            } else {
+                selectedTagBlock.updateBlock(anchorPane.getLeftAnchor(selectedTagBlock) + 5, anchorPane.getTopAnchor(selectedTagBlock) + 5, selectedTagBlock.getTagWidth(), selectedTagBlock.getTagHeight());
+                tagBlocks.add(selectedTagBlock);
+            }
+            selectedTagBlock = null;
+        });
+
+        /*
+         *按钮
+         *用于打开图片文件
+         */
         Button button = new Button();
         button.setText("Open");
         button.setOnAction((e) -> {
@@ -102,33 +163,46 @@ public class ImageMarking extends Application {
             if (newUrl != null) {
                 Image newImage = new Image(newUrl);
                 imageView.setImage(newImage);
+                anchorPane.getChildren().removeAll(tagBlocks);
+                tagBlocks.clear();
             }
         });
 
+        /*
+         *StackPane
+         *由图片和标记叠加而成的StackPane
+         */
+        StackPane stackPane = new StackPane();
+        stackPane.setAlignment(Pos.TOP_LEFT);
+        stackPane.getChildren().add(imageView);
+        stackPane.getChildren().add(anchorPane);
+
+        /*
+         *网格布局GridPane
+         *(0,0)(0,1)为菜单栏
+         *(1,0)为工具栏
+         *(1,1)为主操作界面
+         */
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.TOP_LEFT);
+        gridPane.setVgap(10);
+        gridPane.setHgap(10);
         gridPane.add(button, 0, 0);
-        gridPane.add(scrollPane, 0, 1);
+        gridPane.add(stackPane, 1, 1);
 
-        TagBlockControl tagBlock = new TagBlockControl();
-//        tagBlock.setOnAction((event -> {
-//            System.out.println(tagBlock);
-//            tagBlock.updateBlock(tagBlock.getX(), tagBlock.getY(), tagBlock.getTagWidth() + 10, tagBlock.getTagHeight() + 10);
-//            event.consume();
-//        }));
-
-        // 在屏幕上显示图像
+        /*
+         *最底层的StackPane
+         *用于放置网格布局GridPane以及添加后续弹窗等功能
+         */
         StackPane root = new StackPane();
-        root.setAlignment(Pos.TOP_LEFT);
-        root.setOnMouseClicked((e) -> {
-            System.out.println(e.getX() + " " + e.getY());
-            TagBlockControl tagBlockControl = new TagBlockControl(e.getX(), e.getY(), e.getX(), e.getY());
-            root.getChildren().add(tagBlockControl);
-        });
-        root.getChildren().add(tagBlock);
+        root.getChildren().add(gridPane);
 
-
-        Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
+        /*
+         *获取当前屏幕长宽
+         *创建铺满屏幕的窗口
+         */
+        java.awt.Dimension scrSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         scene = new Scene(root, scrSize.getWidth() / 1.2, scrSize.getHeight() / 1.2);
-//        scene = new Scene(root, 500, 500);
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.show();
