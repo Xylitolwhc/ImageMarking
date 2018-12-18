@@ -1,5 +1,6 @@
 import CustomUI.TagBlockControl;
-import POJO.mProperty;
+import CustomUI.TagState;
+import Properties.MouseProperty;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -9,20 +10,20 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -48,8 +49,8 @@ import java.util.List;
 import static java.lang.StrictMath.random;
 
 public class ImageMarking extends Application {
-    mProperty imageProperty = new mProperty();
-    mProperty mouseMovement = new mProperty();
+    MouseProperty imageProperty = new MouseProperty();
+    MouseProperty mouseMovement, mouseProperty;
     Scene scene;
     TagBlockControl selectedTagBlock;
     List<TagBlockControl> tagBlocks = new ArrayList<>();
@@ -116,40 +117,102 @@ public class ImageMarking extends Application {
 //            anchorPane.setLeftAnchor(tagBlockControl, e.getX() - 5);
 //        });
         anchorPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
-            TagBlockControl newTagBlock = new TagBlockControl(e.getX(), e.getY());
-            anchorPane.setTopAnchor(newTagBlock, newTagBlock.getY() - 5);
-            anchorPane.setLeftAnchor(newTagBlock, newTagBlock.getX() - 5);
-            anchorPane.getChildren().add(newTagBlock);
-            selectedTagBlock = newTagBlock;
-            mouseMovement.setScreenX(e.getScreenX());
-            mouseMovement.setScreenY(e.getScreenY());
+            if (e.getButton() == MouseButton.PRIMARY) {
+                TagBlockControl newTagBlock = new TagBlockControl(e.getX(), e.getY(), 0, 0);
+                /*
+                 *添加拖拽更改标记框大小以及移动功能
+                 */
+                newTagBlock.addEventHandler(MouseEvent.MOUSE_PRESSED, (event) -> {
+                    if (newTagBlock.isCreationDone()) {
+
+                        switch(newTagBlock.getState()){
+                            case ATTEMPT_TO_MOVE:{
+                                newTagBlock.setState(TagState.MOVING);
+                                break;
+                            }
+                            case ATTEMPT_TO_RESIZE:{
+                                newTagBlock.setState(TagState.RESIZING);
+                                break;
+                            }
+                        }
+                        selectedTagBlock = newTagBlock;
+                        mouseProperty = new MouseProperty(event);
+                        event.consume();
+                    }
+                });
+                newTagBlock.addEventHandler(MouseEvent.MOUSE_DRAGGED, (event) -> {
+                    if (newTagBlock.isCreationDone()) {
+                        if (mouseProperty != null) {
+                            double moveBiasX = event.getScreenX() - mouseProperty.getScreenX(), moveBiasY = event.getScreenY() - mouseProperty.getScreenY();
+                            switch (newTagBlock.getState()) {
+                                case MOVING: {
+                                    anchorPane.setLeftAnchor(newTagBlock, newTagBlock.getX() + moveBiasX - newTagBlock.getTagWidthPadding());
+                                    anchorPane.setTopAnchor(newTagBlock, newTagBlock.getY() + moveBiasY - newTagBlock.getTagHeightPadding());
+                                    newTagBlock.updateBlockXY(newTagBlock.getX() + moveBiasX, newTagBlock.getY() + moveBiasY);
+                                    newTagBlock.getScene().setCursor(Cursor.MOVE);
+                                    break;
+                                }
+                                case RESIZING: {
+                                    selectedTagBlock.updateBlock(selectedTagBlock.getTagWidth() + moveBiasX, selectedTagBlock.getTagHeight() + moveBiasY);
+                                    break;
+                                }
+                            }
+                            mouseProperty.set(event);
+                            event.consume();
+                        }
+                    }
+                });
+                newTagBlock.addEventHandler(MouseEvent.MOUSE_RELEASED, (event) -> {
+                    if (newTagBlock.isCreationDone()) {
+                        event.consume();
+                        newTagBlock.getScene().setCursor(Cursor.DEFAULT);
+                        newTagBlock.setState(TagState.SELECTED);
+                        mouseProperty = null;
+                    }
+                });
+
+                anchorPane.setLeftAnchor(newTagBlock, newTagBlock.getX() - newTagBlock.getTagWidthPadding());
+                anchorPane.setTopAnchor(newTagBlock, newTagBlock.getY() - newTagBlock.getTagHeightPadding());
+                anchorPane.getChildren().add(newTagBlock);
+                selectedTagBlock = newTagBlock;
+                mouseMovement = new MouseProperty(e);
+                e.consume();
+            }
         });
         anchorPane.addEventHandler(MouseEvent.MOUSE_DRAGGED, (e) -> {
-            double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
-            selectedTagBlock.updateBlock(Math.abs(biasX), Math.abs(biasY));
-            if (biasX >= 0 && biasY >= 0) {
-                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() - 5);
-                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() - 5);
-            } else if (biasX < 0 && biasY >= 0) {
-                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() - 5);
-                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() + biasX - 5);
-            } else if (biasX >= 0 && biasY < 0) {
-                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() + biasY - 5);
-                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() - 5);
-            } else if (biasX < 0 && biasY < 0) {
-                anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() + biasY - 5);
-                anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() + biasX - 5);
+            if (e.getButton() == MouseButton.PRIMARY && mouseMovement != null) {
+                double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
+                selectedTagBlock.updateBlock(Math.abs(biasX), Math.abs(biasY));
+                if (biasX >= 0 && biasY >= 0) {
+                    anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() - selectedTagBlock.getTagHeightPadding());
+                    anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() - selectedTagBlock.getTagWidthPadding());
+                } else if (biasX < 0 && biasY >= 0) {
+                    anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() - selectedTagBlock.getTagHeightPadding());
+                    anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() + biasX - selectedTagBlock.getTagWidthPadding());
+                } else if (biasX >= 0 && biasY < 0) {
+                    anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() + biasY - selectedTagBlock.getTagHeightPadding());
+                    anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() - selectedTagBlock.getTagWidthPadding());
+                } else if (biasX < 0 && biasY < 0) {
+                    anchorPane.setTopAnchor(selectedTagBlock, selectedTagBlock.getY() + biasY - selectedTagBlock.getTagHeightPadding());
+                    anchorPane.setLeftAnchor(selectedTagBlock, selectedTagBlock.getX() + biasX - selectedTagBlock.getTagWidthPadding());
+                    e.consume();
+                }
             }
         });
         anchorPane.addEventHandler(MouseEvent.MOUSE_RELEASED, (e) -> {
-            double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
-            if (Math.abs(biasX) < 5 || Math.abs(biasY) < 5) {
-                anchorPane.getChildren().remove(selectedTagBlock);
-            } else {
-                selectedTagBlock.updateBlock(anchorPane.getLeftAnchor(selectedTagBlock) + 5, anchorPane.getTopAnchor(selectedTagBlock) + 5, selectedTagBlock.getTagWidth(), selectedTagBlock.getTagHeight());
-                tagBlocks.add(selectedTagBlock);
+            if (e.getButton() == MouseButton.PRIMARY && mouseMovement != null) {
+                double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
+                if (Math.abs(biasX) < 5 || Math.abs(biasY) < 5) {
+                    anchorPane.getChildren().remove(selectedTagBlock);
+                } else {
+                    selectedTagBlock.updateBlock(anchorPane.getLeftAnchor(selectedTagBlock) + selectedTagBlock.getTagWidthPadding(), anchorPane.getTopAnchor(selectedTagBlock) + selectedTagBlock.getTagHeightPadding(), selectedTagBlock.getTagWidth(), selectedTagBlock.getTagHeight());
+                    tagBlocks.add(selectedTagBlock);
+                }
+                selectedTagBlock.creationDone();
+                selectedTagBlock = null;
+                mouseMovement = null;
+                e.consume();
             }
-            selectedTagBlock = null;
         });
 
         /*

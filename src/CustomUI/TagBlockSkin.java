@@ -1,7 +1,6 @@
 package CustomUI;
 
 import javafx.scene.Cursor;
-import javafx.scene.ImageCursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.SkinBase;
@@ -27,54 +26,89 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         maxHeightPadding = 0.0;
     }
 
-    private void draw() {
+    /*
+     *绘制标记框
+     */
+    private void drawTag() {
         if (canvas != null) {
             getChildren().remove(canvas);
         }
         double widthPadding = getSkinnable().getTagWidthPadding(),
                 heightPadding = getSkinnable().getTagHeightPadding(),
                 width = getSkinnable().getTagWidth(),
-                height = getSkinnable().getTagHeight();
-        double radius = 3.0;
+                height = getSkinnable().getTagHeight(),
+                radius = getSkinnable().getTagRadius();
+        if (widthPadding <= 0) widthPadding = 0;
+        if (heightPadding <= 0) heightPadding = 0;
+        if (width <= 0) width = 0;
+        if (height <= 0) height = 0;
+        if (radius <= 0) radius = 0;
+
         canvas = new Canvas(width + widthPadding * 2, height + heightPadding * 2);
         GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
         //上下左右四条边框
         graphicsContext.setLineWidth(1);
-        graphicsContext.setFill(Color.GREEN);
-        graphicsContext.setStroke(Color.GREEN);
+        graphicsContext.setFill(Color.BLACK);
+        graphicsContext.setStroke(Color.BLACK);
         graphicsContext.strokeLine(widthPadding, heightPadding, widthPadding + width, heightPadding);
         graphicsContext.strokeLine(widthPadding, heightPadding + height, widthPadding + width, heightPadding + height);
         graphicsContext.strokeLine(widthPadding, heightPadding, widthPadding, heightPadding + height);
         graphicsContext.strokeLine(widthPadding + width, heightPadding, widthPadding + width, heightPadding + height);
         //四角上的点
-        graphicsContext.setFill(Color.BLUE);
-        graphicsContext.setStroke(Color.BLUE);
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.setStroke(Color.WHITE);
         graphicsContext.fillOval(widthPadding - radius, heightPadding - radius, radius * 2, radius * 2);
         graphicsContext.fillOval(widthPadding - radius + width, heightPadding - radius, radius * 2, radius * 2);
         graphicsContext.fillOval(widthPadding - radius, heightPadding + height - radius, radius * 2, radius * 2);
         graphicsContext.fillOval(widthPadding + width - radius, heightPadding + height - radius, radius * 2, radius * 2);
         invalidBlock = false;
+        bindActionEcent(canvas);
+        getChildren().add(canvas);
+    }
+
+    /*
+     *测试功能
+     */
+    private void bindActionEcent(Canvas canvas) {
         canvas.setOnMouseClicked((e) -> {
             getSkinnable().fireEvent(e);
         });
-        canvas.addEventHandler(MouseEvent.MOUSE_ENTERED,(e)->{
+        canvas.addEventHandler(MouseEvent.MOUSE_ENTERED, (e) -> {
             getSkinnable().getScene().setCursor(Cursor.HAND);
         });
-        canvas.addEventHandler(MouseEvent.MOUSE_EXITED,(e)->{
+        canvas.addEventHandler(MouseEvent.MOUSE_MOVED, (e) -> {
+            double widthPadding = getSkinnable().getTagWidthPadding(),
+                    heightPadding = getSkinnable().getTagHeightPadding(),
+                    width = getSkinnable().getTagWidth(),
+                    height = getSkinnable().getTagHeight(),
+                    radius = getSkinnable().getTagRadius();
+            double x = e.getX(), y = e.getY();
+            if (x > widthPadding + width - radius * 4
+                    && x < widthPadding + width + radius * 4
+                    && y > heightPadding + height - radius * 4
+                    && y < heightPadding + height + radius * 4) {
+                getSkinnable().getScene().setCursor(Cursor.SE_RESIZE);
+                getSkinnable().setState(TagState.ATTEMPT_TO_RESIZE);
+            } else if (true) {
+                getSkinnable().getScene().setCursor(Cursor.MOVE);
+                getSkinnable().setState(TagState.ATTEMPT_TO_MOVE);
+            }
+            getSkinnable().fireEvent(e);
+        });
+        canvas.addEventHandler(MouseEvent.MOUSE_EXITED, (e) -> {
             getSkinnable().getScene().setCursor(Cursor.DEFAULT);
         });
-        getChildren().add(canvas);
     }
 
     public void updateBlock() {
         invalidBlock = true;
-        draw();
+        drawTag();
     }
 
     @Override
     protected void layoutChildren(double contentX, double contentY, double contentWidth, double contentHeight) {
         if (invalidBlock) {
-            draw();
+            drawTag();
         }
     }
 

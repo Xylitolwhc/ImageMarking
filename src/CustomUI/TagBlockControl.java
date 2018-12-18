@@ -7,14 +7,21 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 
 
 public class TagBlockControl extends Control {
-    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding;
+    public final static double TAG_WIDTH_PADDING_DEFAULT = 10.0,
+            TAG_HEIGHT_PADDING_DEFAULT = 10.0,
+            TAG_RADIUS_DEFAULT = 2.5;
 
+    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius;
+    private TagState state;
+
+    /*
+     *初始化各属性值
+     */
     private void init() {
         this.x = new SimpleDoubleProperty();
         this.y = new SimpleDoubleProperty();
@@ -26,8 +33,25 @@ public class TagBlockControl extends Control {
         this.tagHeight = new SimpleDoubleProperty();
         this.tagWidthPadding = new SimpleDoubleProperty();
         this.tagHeightPadding = new SimpleDoubleProperty();
+        this.tagRadius = new SimpleDoubleProperty();
+
+        this.x.setValue(0);
+        this.y.setValue(0);
+        this.width.setValue(0);
+        this.height.setValue(0);
+        this.tagX.setValue(0);
+        this.tagY.setValue(0);
+        this.tagWidth.setValue(0);
+        this.tagHeight.setValue(0);
+        this.tagWidthPadding.setValue(TAG_WIDTH_PADDING_DEFAULT);
+        this.tagHeightPadding.setValue(TAG_HEIGHT_PADDING_DEFAULT);
+        this.tagRadius.setValue(TAG_RADIUS_DEFAULT);
+        state = TagState.CREATING;
     }
 
+    /*
+     *基本构造函数
+     */
     public TagBlockControl() {
         this(0, 0, 0, 0);
     }
@@ -46,11 +70,13 @@ public class TagBlockControl extends Control {
         this.tagY.setValue(y);
         this.tagWidth.setValue(width);
         this.tagHeight.setValue(height);
-        tagWidthPadding.setValue(5);
-        tagHeightPadding.setValue(5);
         setSkin(createDefaultSkin());
     }
 
+
+    /*
+     *用于更新重绘控件外观
+     */
     public void updateBlock() {
         ((TagBlockSkin) getSkin()).updateBlock();
     }
@@ -58,6 +84,14 @@ public class TagBlockControl extends Control {
     public void updateBlock(double width, double height) {
         this.width.setValue(width);
         this.height.setValue(height);
+        updateBlock();
+    }
+
+    public void updateBlockXY(double x, double y) {
+        this.x.setValue(x);
+        this.y.setValue(y);
+        this.tagX.setValue(x);
+        this.tagY.setValue(y);
         updateBlock();
     }
 
@@ -69,6 +103,9 @@ public class TagBlockControl extends Control {
         updateBlock();
     }
 
+    /*
+     *getter & setter
+     */
     public Double getX() {
         return x.getValue();
     }
@@ -111,6 +148,35 @@ public class TagBlockControl extends Control {
         return tagHeightPadding.getValue();
     }
 
+    public void setTagRadius(double tagRadius) {
+        this.tagRadius.setValue(tagRadius);
+        updateBlock();
+    }
+
+    public double getTagRadius() {
+        return tagRadius.getValue();
+    }
+
+    public Boolean isCreationDone() {
+        return state != TagState.CREATING;
+    }
+
+    public void creationDone() {
+        this.state = TagState.CREATION_DONE;
+    }
+
+    public void setState(TagState state) {
+        this.state = state;
+    }
+
+    public TagState getState() {
+        return state;
+    }
+
+    /*
+     *添加事件
+     */
+
     public final ObjectProperty<EventHandler<ActionEvent>> onActionProperty() {
         return onAction;
     }
@@ -145,6 +211,9 @@ public class TagBlockControl extends Control {
         return new TagBlockSkin(this);
     }
 
+    /*
+     *计算当前控件大小
+     */
     @Override
     protected double computeMinWidth(double height) {
         return super.computeMinWidth(height);

@@ -1,7 +1,27 @@
-package POJO;
+package Properties;
 
-public class mProperty {
+import javafx.scene.input.MouseEvent;
+
+public class MouseProperty {
     private double screenX, screenY, x, y;
+
+    public MouseProperty() {
+        screenX = 0;
+        screenY = 0;
+        x = 0;
+        y = 0;
+    }
+
+    public MouseProperty(MouseEvent event) {
+        set(event);
+    }
+
+    public void set(MouseEvent event) {
+        this.screenX = event.getScreenX();
+        this.screenY = event.getScreenY();
+        this.x = event.getX();
+        this.y = event.getY();
+    }
 
     public double getScreenX() {
         return screenX;
