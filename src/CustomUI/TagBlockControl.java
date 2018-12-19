@@ -9,6 +9,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 
 
 public class TagBlockControl extends Control {
@@ -16,8 +18,10 @@ public class TagBlockControl extends Control {
             TAG_HEIGHT_PADDING_DEFAULT = 10.0,
             TAG_RADIUS_DEFAULT = 2.5;
 
-    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius;
+    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, textX, textY;
     private TagState state;
+    private TextField textField;
+    private AnchorPane anchorPane;
 
     /*
      *初始化各属性值
@@ -34,6 +38,9 @@ public class TagBlockControl extends Control {
         this.tagWidthPadding = new SimpleDoubleProperty();
         this.tagHeightPadding = new SimpleDoubleProperty();
         this.tagRadius = new SimpleDoubleProperty();
+        this.textX = new SimpleDoubleProperty();
+        this.textY = new SimpleDoubleProperty();
+        this.textField = new TextField();
 
         this.x.setValue(0);
         this.y.setValue(0);
@@ -46,6 +53,8 @@ public class TagBlockControl extends Control {
         this.tagWidthPadding.setValue(TAG_WIDTH_PADDING_DEFAULT);
         this.tagHeightPadding.setValue(TAG_HEIGHT_PADDING_DEFAULT);
         this.tagRadius.setValue(TAG_RADIUS_DEFAULT);
+        this.textX.setValue(0);
+        this.textY.setValue(0);
         state = TagState.CREATING;
     }
 
@@ -171,6 +180,18 @@ public class TagBlockControl extends Control {
 
     public TagState getState() {
         return state;
+    }
+
+    public TextField getTextField() {
+        return textField;
+    }
+
+    public void setTextField(TextField textField) {
+        this.textField = textField;
+    }
+
+    public void setText(String text) {
+        this.textField.setText(text);
     }
 
     /*
