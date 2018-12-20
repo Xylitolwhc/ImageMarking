@@ -33,11 +33,15 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         if (canvas != null) {
             getChildren().remove(canvas);
         }
-        double widthPadding = getSkinnable().getTagWidthPadding(),
-                heightPadding = getSkinnable().getTagHeightPadding(),
-                width = getSkinnable().getTagWidth(),
-                height = getSkinnable().getTagHeight(),
+        double zoomScale = getSkinnable().getZoomScale(),
+                widthPadding = getSkinnable().getTagWidthPadding() * zoomScale,
+                heightPadding = getSkinnable().getTagHeightPadding() * zoomScale,
+                width = getSkinnable().getTagWidth() * zoomScale,
+                height = getSkinnable().getTagHeight() * zoomScale,
                 radius = getSkinnable().getTagRadius();
+        Color lineColor = getSkinnable().getLineColor(),
+                pointColor = getSkinnable().getPointColor();
+
         if (widthPadding <= 0) widthPadding = 0;
         if (heightPadding <= 0) heightPadding = 0;
         if (width <= 0) width = 0;
@@ -48,15 +52,15 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
         //上下左右四条边框
         graphicsContext.setLineWidth(1);
-        graphicsContext.setFill(Color.BLACK);
-        graphicsContext.setStroke(Color.BLACK);
+        graphicsContext.setFill(lineColor);
+        graphicsContext.setStroke(lineColor);
         graphicsContext.strokeLine(widthPadding, heightPadding, widthPadding + width, heightPadding);
         graphicsContext.strokeLine(widthPadding, heightPadding + height, widthPadding + width, heightPadding + height);
         graphicsContext.strokeLine(widthPadding, heightPadding, widthPadding, heightPadding + height);
         graphicsContext.strokeLine(widthPadding + width, heightPadding, widthPadding + width, heightPadding + height);
         //四角上的点
-        graphicsContext.setFill(Color.WHITE);
-        graphicsContext.setStroke(Color.WHITE);
+        graphicsContext.setFill(pointColor);
+        graphicsContext.setStroke(pointColor);
         graphicsContext.fillOval(widthPadding - radius, heightPadding - radius, radius * 2, radius * 2);
         graphicsContext.fillOval(widthPadding - radius + width, heightPadding - radius, radius * 2, radius * 2);
         graphicsContext.fillOval(widthPadding - radius, heightPadding + height - radius, radius * 2, radius * 2);
@@ -77,10 +81,11 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
             getSkinnable().getScene().setCursor(Cursor.HAND);
         });
         canvas.addEventHandler(MouseEvent.MOUSE_MOVED, (e) -> {
-            double widthPadding = getSkinnable().getTagWidthPadding(),
-                    heightPadding = getSkinnable().getTagHeightPadding(),
-                    width = getSkinnable().getTagWidth(),
-                    height = getSkinnable().getTagHeight(),
+            double zoomScale = getSkinnable().getZoomScale(),
+                    widthPadding = getSkinnable().getTagWidthPadding() * zoomScale,
+                    heightPadding = getSkinnable().getTagHeightPadding() * zoomScale,
+                    width = getSkinnable().getTagWidth() * zoomScale,
+                    height = getSkinnable().getTagHeight() * zoomScale,
                     radius = getSkinnable().getTagRadius();
             double x = e.getX(), y = e.getY();
             if (x > widthPadding + width - radius * 4

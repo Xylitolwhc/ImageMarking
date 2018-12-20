@@ -10,51 +10,37 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
-
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 public class TagBlockControl extends Control {
     public final static double TAG_WIDTH_PADDING_DEFAULT = 10.0,
             TAG_HEIGHT_PADDING_DEFAULT = 10.0,
             TAG_RADIUS_DEFAULT = 2.5;
 
-    private DoubleProperty x, y, width, height, tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, textX, textY;
+    private DoubleProperty tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, textX, textY, zoomScale;
+    private Color pointColor, lineColor;
     private TagState state;
     private TextField textField;
-    private AnchorPane anchorPane;
 
     /*
      *初始化各属性值
      */
     private void init() {
-        this.x = new SimpleDoubleProperty();
-        this.y = new SimpleDoubleProperty();
-        this.width = new SimpleDoubleProperty();
-        this.height = new SimpleDoubleProperty();
-        this.tagX = new SimpleDoubleProperty();
-        this.tagY = new SimpleDoubleProperty();
-        this.tagWidth = new SimpleDoubleProperty();
-        this.tagHeight = new SimpleDoubleProperty();
-        this.tagWidthPadding = new SimpleDoubleProperty();
-        this.tagHeightPadding = new SimpleDoubleProperty();
-        this.tagRadius = new SimpleDoubleProperty();
-        this.textX = new SimpleDoubleProperty();
-        this.textY = new SimpleDoubleProperty();
-        this.textField = new TextField();
-
-        this.x.setValue(0);
-        this.y.setValue(0);
-        this.width.setValue(0);
-        this.height.setValue(0);
-        this.tagX.setValue(0);
-        this.tagY.setValue(0);
-        this.tagWidth.setValue(0);
-        this.tagHeight.setValue(0);
-        this.tagWidthPadding.setValue(TAG_WIDTH_PADDING_DEFAULT);
-        this.tagHeightPadding.setValue(TAG_HEIGHT_PADDING_DEFAULT);
-        this.tagRadius.setValue(TAG_RADIUS_DEFAULT);
-        this.textX.setValue(0);
-        this.textY.setValue(0);
+        tagX = new SimpleDoubleProperty(0);
+        tagY = new SimpleDoubleProperty(0);
+        tagWidth = new SimpleDoubleProperty(0);
+        tagHeight = new SimpleDoubleProperty(0);
+        tagWidthPadding = new SimpleDoubleProperty(TAG_WIDTH_PADDING_DEFAULT);
+        tagHeightPadding = new SimpleDoubleProperty(TAG_HEIGHT_PADDING_DEFAULT);
+        tagRadius = new SimpleDoubleProperty(TAG_RADIUS_DEFAULT);
+        textX = new SimpleDoubleProperty(0);
+        textY = new SimpleDoubleProperty(0);
+        textField = new TextField();
+        zoomScale = new SimpleDoubleProperty(1.0);
+        pointColor = Color.BLACK;
+        lineColor = Color.BLACK;
+        textField.setPrefColumnCount(10);
         state = TagState.CREATING;
     }
 
@@ -70,18 +56,17 @@ public class TagBlockControl extends Control {
     }
 
     public TagBlockControl(double x, double y, double width, double height) {
-        init();
-        this.x.setValue(x);
-        this.y.setValue(y);
-        this.width.setValue(width);
-        this.height.setValue(height);
-        this.tagX.setValue(x);
-        this.tagY.setValue(y);
-        this.tagWidth.setValue(width);
-        this.tagHeight.setValue(height);
-        setSkin(createDefaultSkin());
+        this(x, y, width, height, 1.0);
     }
 
+    public TagBlockControl(double x, double y, double width, double height, double zoomScale) {
+        init();
+        this.tagX.set(x / zoomScale);
+        this.tagY.set(y / zoomScale);
+        this.tagWidth.set(width / zoomScale);
+        this.tagHeight.set(height / zoomScale);
+        setSkin(createDefaultSkin());
+    }
 
     /*
      *用于更新重绘控件外观
@@ -91,24 +76,22 @@ public class TagBlockControl extends Control {
     }
 
     public void updateBlock(double width, double height) {
-        this.width.setValue(width);
-        this.height.setValue(height);
+        this.tagWidth.set(width / zoomScale.get());
+        this.tagHeight.set(height / zoomScale.get());
         updateBlock();
     }
 
     public void updateBlockXY(double x, double y) {
-        this.x.setValue(x);
-        this.y.setValue(y);
-        this.tagX.setValue(x);
-        this.tagY.setValue(y);
+        this.tagX.set(x / zoomScale.get());
+        this.tagY.set(y / zoomScale.get());
         updateBlock();
     }
 
     public void updateBlock(double x, double y, double width, double height) {
-        this.x.setValue(x);
-        this.y.setValue(y);
-        this.width.setValue(width);
-        this.height.setValue(height);
+        this.tagX.setValue(x / zoomScale.get());
+        this.tagY.setValue(y / zoomScale.get());
+        this.tagWidth.setValue(width / zoomScale.get());
+        this.tagHeight.setValue(height / zoomScale.get());
         updateBlock();
     }
 
@@ -116,27 +99,27 @@ public class TagBlockControl extends Control {
      *getter & setter
      */
     public Double getX() {
-        return x.getValue();
+        return tagX.get();
     }
 
     public Double getY() {
-        return y.getValue();
+        return tagY.get();
     }
 
     public Double getTagX() {
-        return x.getValue();
+        return tagX.get();
     }
 
     public Double getTagY() {
-        return y.getValue();
+        return tagY.get();
     }
 
     public Double getTagWidth() {
-        return width.getValue();
+        return tagWidth.get();
     }
 
     public Double getTagHeight() {
-        return height.getValue();
+        return tagHeight.get();
     }
 
     public void setTagWidthPadding(double tagWidthPadding) {
@@ -192,6 +175,40 @@ public class TagBlockControl extends Control {
 
     public void setText(String text) {
         this.textField.setText(text);
+    }
+
+    public String getText() {
+        return this.textField.getText();
+    }
+
+    public double getZoomScale() {
+        return zoomScale.get();
+    }
+
+    public DoubleProperty zoomScaleProperty() {
+        return zoomScale;
+    }
+
+    public void setZoomScale(double zoomScale) {
+        this.zoomScale.set(zoomScale);
+    }
+
+    public Color getPointColor() {
+        return pointColor;
+    }
+
+    public void setPointColor(Color pointColor) {
+        this.pointColor = pointColor;
+        updateBlock();
+    }
+
+    public Color getLineColor() {
+        return lineColor;
+    }
+
+    public void setLineColor(Color lineColor) {
+        this.lineColor = lineColor;
+        updateBlock();
     }
 
     /*
@@ -275,6 +292,6 @@ public class TagBlockControl extends Control {
 
     @Override
     public String toString() {
-        return "x:" + this.x.getValue() + " y:" + y.getValue() + " width:" + width.getValue() + " height:" + height.getValue();
+        return "x:" + this.tagX.getValue() + " y:" + tagY.getValue() + " width:" + tagWidth.getValue() + " height:" + tagHeight.getValue();
     }
 }
