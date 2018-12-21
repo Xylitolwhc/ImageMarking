@@ -269,7 +269,6 @@ public class ImageMarking extends Application {
         primaryStage.setOnCloseRequest((e) -> {
             if (isChanged) {
                 Optional<ButtonType> result = showAlert(primaryStage);
-                System.out.println(result);
                 if (result.get().getButtonData() == ButtonBar.ButtonData.YES) {
                     save(xmlPath.toFile());
                 } else if (result.get().getButtonData() == ButtonBar.ButtonData.NO) {
@@ -392,7 +391,6 @@ public class ImageMarking extends Application {
                 int position = imagePath.toString().lastIndexOf(".");
                 File xmlFile = new File(imagePath.toString().substring(0, position + 1) + "xml");
                 xmlPath = xmlFile.toPath();
-                System.out.println(xmlFile.exists());
                 if (xmlFile.exists()) {
                     readXml(xmlFile);
                 }
@@ -511,7 +509,6 @@ public class ImageMarking extends Application {
                 selectedTagBlock.setLineColor(lineColor);
                 selectedTagBlock.setPointColor(pointColor);
                 tagBlocks.add(selectedTagBlock);
-                System.out.println(element);
             }
         } catch (Exception e) {
             e.printStackTrace();
