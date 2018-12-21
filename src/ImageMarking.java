@@ -1,12 +1,16 @@
 import CustomUI.TagBlockControl;
 import CustomUI.TagState;
 import Properties.MouseProperty;
+import com.jfoenix.animation.alert.JFXAlertAnimation;
+import com.jfoenix.controls.*;
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.image.Image;
@@ -14,6 +18,7 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -39,6 +44,18 @@ import java.util.List;
 public class ImageMarking extends Application {
     private final static double SCREEN_WIDTH = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth(),
             SCREEN_HEIGHT = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+    private final static String buttonStyleGreen = "-jfx-button-type: RAISED;" +
+            "-fx-background-color: green;" +
+            "-fx-text-fill: white;",
+            buttonStyleRed = "-jfx-button-type: RAISED;" +
+                    "-fx-background-color: red;" +
+                    "-fx-text-fill: white;",
+            buttonStyleBlue = "-jfx-button-type: RAISED;" +
+                    "-fx-background-color: blue;" +
+                    "-fx-text-fill: white;",
+            buttonStyleWhite = "-jfx-button-type: RAISED;" +
+                    "-fx-background-color: white;" +
+                    "-fx-text-fill: black;";
 
     private MouseProperty mouseMovement, mouseProperty, movePane;
     private TagBlockControl selectedTagBlock;
@@ -47,6 +64,8 @@ public class ImageMarking extends Application {
     private DoubleProperty imageWidth, imageHeight, zoomScale;
     private AnchorPane anchorPane;
     private Boolean isChanged = false;
+    private StackPane root;
+    private ButtonBar.ButtonData result;
 
     @Override
     public void start(Stage primaryStage) {
@@ -177,29 +196,49 @@ public class ImageMarking extends Application {
          *Open按钮
          *用于打开图片文件
          */
-        Button buttonOpen = new Button("Open");
+        JFXButton buttonOpen = new JFXButton("Open");
+        buttonOpen.setStyle(buttonStyleGreen);
         buttonOpen.setOnAction((e) -> {
             if (isChanged) {
-                ButtonBar.ButtonData result = showAlert(primaryStage);
+                ButtonBar.ButtonData result = showJFXAlert(primaryStage);
                 if (result == ButtonBar.ButtonData.YES || result == ButtonBar.ButtonData.NO) {
                     if (result == ButtonBar.ButtonData.YES) {
-                        save(xmlPath.toFile());
+                        save(xmlPath.toFile(), primaryStage);
                     }
                     openNewImage(primaryStage, imageView, movableAnchorPane);
                     isChanged = false;
                 } else if (result == ButtonBar.ButtonData.CANCEL_CLOSE) {
                     e.consume();
                 }
+                result = null;
             } else {
                 openNewImage(primaryStage, imageView, movableAnchorPane);
                 isChanged = false;
             }
         });
-        buttonOpen.setPrefSize(200, 50);
+        buttonOpen.setMinSize(150, 30);
 
-        Button buttonSave = new Button("Save");
-        buttonSave.setPrefSize(200, 50);
-        buttonSave.setOnAction((e) -> save(xmlPath.toFile()));
+        JFXButton buttonSave = new JFXButton("Save");
+        buttonSave.setStyle(buttonStyleGreen);
+        buttonSave.setMinSize(150, 30);
+        buttonSave.setOnAction((e) -> save(xmlPath.toFile(), primaryStage));
+
+        JFXButton buttonTest = new JFXButton("Test");
+        buttonTest.setStyle(buttonStyleGreen);
+        buttonTest.setMinSize(150, 30);
+        buttonTest.setOnAction((e) -> showSavedDialog(primaryStage));
+
+        JFXButton buttonTest2 = new JFXButton("Test2");
+        buttonTest2.setStyle(buttonStyleGreen);
+        buttonTest2.setMinSize(150, 30);
+        buttonTest2.setOnAction((e) -> {
+            showJFXAlert(primaryStage);
+            result = null;
+        });
+
+        HBox buttons = new HBox();
+        buttons.setSpacing(5.0);
+        buttons.getChildren().addAll(buttonSave, buttonTest, buttonTest2);
 
         /*
          *带滑动条的ScrollPane
@@ -223,20 +262,20 @@ public class ImageMarking extends Application {
         gridPane.setVgap(5);
         gridPane.setHgap(5);
         gridPane.add(buttonOpen, 0, 0);
-        gridPane.add(buttonSave, 1, 0);
+        gridPane.add(buttons, 1, 0);
         gridPane.add(scrollPane, 1, 1);
 
         /*
          *最底层的StackPane
          *用于放置网格布局GridPane以及添加后续弹窗等功能
          */
-        StackPane root = new StackPane();
+        root = new StackPane();
         root.getChildren().add(gridPane);
 
         /*
          *创建铺满屏幕的窗口
          */
-        Scene scene = new Scene(root, SCREEN_WIDTH / 1.2, SCREEN_HEIGHT / 1.2);
+        Scene scene = new Scene(root, SCREEN_WIDTH / 1.2, SCREEN_HEIGHT / 1.2, false, SceneAntialiasing.BALANCED);
         /*
          *响应全局键盘事件
          */
@@ -255,7 +294,7 @@ public class ImageMarking extends Application {
                 }
                 case S: {
                     if (e.isShortcutDown()) {
-                        save(xmlPath.toFile());
+                        save(xmlPath.toFile(), primaryStage);
                     }
                 }
             }
@@ -264,13 +303,14 @@ public class ImageMarking extends Application {
         primaryStage.setResizable(true);
         primaryStage.setOnCloseRequest((e) -> {
             if (isChanged) {
-                ButtonBar.ButtonData result = showAlert(primaryStage);
+                ButtonBar.ButtonData result = showJFXAlert(primaryStage);
                 if (result == ButtonBar.ButtonData.YES) {
-                    save(xmlPath.toFile());
+                    save(xmlPath.toFile(), primaryStage);
                 } else if (result == ButtonBar.ButtonData.CANCEL_CLOSE) {
                     e.consume();
                 }
             }
+            result = null;
         });
         primaryStage.show();
     }
@@ -354,15 +394,15 @@ public class ImageMarking extends Application {
         anchorPane.setTopAnchor(tagBlock, (tagBlock.getY() - tagBlock.getTagHeightPadding()) * zoomScale.get());
         anchorPane.setLeftAnchor(tagBlock, (tagBlock.getX() - tagBlock.getTagWidthPadding()) * zoomScale.get());
         if (anchorPane.getChildren().contains(tagBlock.getTextField())) {
-            anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getY() + tagBlock.getTagHeight() + tagBlock.getTagHeightPadding()) * zoomScale.get());
-            anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getX() + tagBlock.getTagWidth() + tagBlock.getTagWidthPadding()) * zoomScale.get());
+            anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getY() + tagBlock.getTagHeight() + tagBlock.getTagRadius()) * zoomScale.get());
+            anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getX() + tagBlock.getTagWidth() + tagBlock.getTagRadius()) * zoomScale.get());
         }
     }
 
     private void resizeTagBlock(TagBlockControl tagBlock, AnchorPane anchorPane, double width, double height) {
         tagBlock.updateBlock(width, height);
-        anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getY() + tagBlock.getTagHeight() + tagBlock.getTagHeightPadding()) * zoomScale.get());
-        anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getX() + tagBlock.getTagWidth() + tagBlock.getTagWidthPadding()) * zoomScale.get());
+        anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getY() + tagBlock.getTagHeight() + tagBlock.getTagRadius()) * zoomScale.get());
+        anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getX() + tagBlock.getTagWidth() + tagBlock.getTagRadius()) * zoomScale.get());
     }
 
     private void openNewImage(Stage primaryStage, ImageView imageView, AnchorPane movableAnchorPane) {
@@ -411,7 +451,7 @@ public class ImageMarking extends Application {
         return file;
     }
 
-    private void save(File xmlFile) {
+    private void save(File xmlFile, Stage stage) {
         //dom
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         builderFactory.setIgnoringElementContentWhitespace(false);
@@ -452,6 +492,7 @@ public class ImageMarking extends Application {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.transform(new DOMSource(document), new StreamResult(xmlFile));
             isChanged = false;
+            showSavedDialog(stage);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -484,16 +525,76 @@ public class ImageMarking extends Application {
         }
     }
 
-    private ButtonBar.ButtonData showAlert(Stage stage) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                "  ",
-                new ButtonType("不保存", ButtonBar.ButtonData.NO),
-                new ButtonType("保存", ButtonBar.ButtonData.YES),
-                new ButtonType("取消", ButtonBar.ButtonData.CANCEL_CLOSE));
-        alert.setTitle("");
-        alert.setHeaderText("当前修改内容还未保存,是否保存？");
-        alert.initOwner(stage);
-        return alert.showAndWait().get().getButtonData();
+    private void showSavedDialog(Stage stage) {
+        JFXAlert<Void> jfxAlert = new JFXAlert<>(stage);
+
+        Label label = new Label("保存成功！");
+        label.setStyle("-fx-font-size: 20px;");
+        label.setPadding(new Insets(10, 10, 10, 10));
+
+        JFXButton buttonOK = new JFXButton("好的");
+        buttonOK.setStyle(buttonStyleGreen);
+        buttonOK.setMinSize(60, 30);
+        buttonOK.setOnAction((event -> jfxAlert.close()));
+        HBox hBox = new HBox(buttonOK);
+        hBox.setAlignment(Pos.BOTTOM_RIGHT);
+
+        JFXDialogLayout jfxDialogLayout = new JFXDialogLayout();
+        jfxDialogLayout.setHeading(label);
+        jfxDialogLayout.setBody(hBox);
+
+        jfxAlert.setOverlayClose(true);
+        jfxAlert.setAnimation(JFXAlertAnimation.CENTER_ANIMATION);
+        jfxAlert.setContent(jfxDialogLayout);
+        jfxAlert.initModality(Modality.NONE);
+        jfxAlert.showAndWait();
+    }
+
+    private ButtonBar.ButtonData showJFXAlert(Stage stage) {
+        if (result != null) return ButtonBar.ButtonData.CANCEL_CLOSE;
+        result = ButtonBar.ButtonData.CANCEL_CLOSE;
+        JFXAlert<Void> jfxAlert = new JFXAlert<>(stage);
+
+        JFXButton confirmSave = new JFXButton("保存");
+        confirmSave.setStyle(buttonStyleGreen);
+        confirmSave.setMinSize(60, 30);
+        confirmSave.setOnAction(e -> {
+            result = ButtonBar.ButtonData.YES;
+            jfxAlert.close();
+        });
+        JFXButton notSave = new JFXButton("不保存");
+        notSave.setStyle(buttonStyleRed);
+        notSave.setMinSize(60, 30);
+        notSave.setOnAction(e -> {
+            result = ButtonBar.ButtonData.NO;
+            jfxAlert.close();
+        });
+        JFXButton cancel = new JFXButton("取消");
+        cancel.setStyle(buttonStyleWhite);
+        cancel.setMinSize(60, 30);
+        cancel.setOnAction(e -> {
+            result = ButtonBar.ButtonData.CANCEL_CLOSE;
+            jfxAlert.close();
+        });
+
+        HBox hBox = new HBox();
+        hBox.setSpacing(10);
+        hBox.getChildren().addAll(confirmSave, notSave, cancel);
+        hBox.setAlignment(Pos.BOTTOM_RIGHT);
+
+        Label label = new Label("您所作的修改还未保存，是否保存？");
+        label.setStyle("-fx-font-size: 20px;");
+
+        JFXDialogLayout jfxDialogLayout = new JFXDialogLayout();
+        jfxDialogLayout.setHeading(label);
+        jfxDialogLayout.setBody(hBox);
+
+        jfxAlert.setOverlayClose(false);
+        jfxAlert.setAnimation(JFXAlertAnimation.CENTER_ANIMATION);
+        jfxAlert.setContent(jfxDialogLayout);
+        jfxAlert.initModality(Modality.NONE);
+        jfxAlert.showAndWait();
+        return result;
     }
 
     public static void main(String... args) {
