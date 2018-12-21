@@ -30,7 +30,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /*
  * @author Xylitolwhc
@@ -38,11 +37,10 @@ import java.util.Optional;
  */
 
 public class ImageMarking extends Application {
-    public final static double SCREEN_WIDTH = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth(),
+    private final static double SCREEN_WIDTH = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth(),
             SCREEN_HEIGHT = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 
     private MouseProperty mouseMovement, mouseProperty, movePane;
-    private Scene scene;
     private TagBlockControl selectedTagBlock;
     private List<TagBlockControl> tagBlocks = new ArrayList<>();
     private Path imagePath, xmlPath;
@@ -182,15 +180,15 @@ public class ImageMarking extends Application {
         Button buttonOpen = new Button("Open");
         buttonOpen.setOnAction((e) -> {
             if (isChanged) {
-                Optional<ButtonType> result = showAlert(primaryStage);
-                if (result.get().getButtonData() == ButtonBar.ButtonData.YES || result.get().getButtonData() == ButtonBar.ButtonData.NO) {
-                    if (result.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                ButtonBar.ButtonData result = showAlert(primaryStage);
+                if (result == ButtonBar.ButtonData.YES || result == ButtonBar.ButtonData.NO) {
+                    if (result == ButtonBar.ButtonData.YES) {
                         save(xmlPath.toFile());
                     }
                     openNewImage(primaryStage, imageView, movableAnchorPane);
                     isChanged = false;
-                } else if (result.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) {
-                    //Do Nothing
+                } else if (result == ButtonBar.ButtonData.CANCEL_CLOSE) {
+                    e.consume();
                 }
             } else {
                 openNewImage(primaryStage, imageView, movableAnchorPane);
@@ -201,9 +199,7 @@ public class ImageMarking extends Application {
 
         Button buttonSave = new Button("Save");
         buttonSave.setPrefSize(200, 50);
-        buttonSave.setOnAction((e) -> {
-            save(xmlPath.toFile());
-        });
+        buttonSave.setOnAction((e) -> save(xmlPath.toFile()));
 
         /*
          *带滑动条的ScrollPane
@@ -240,7 +236,7 @@ public class ImageMarking extends Application {
         /*
          *创建铺满屏幕的窗口
          */
-        scene = new Scene(root, SCREEN_WIDTH / 1.2, SCREEN_HEIGHT / 1.2);
+        Scene scene = new Scene(root, SCREEN_WIDTH / 1.2, SCREEN_HEIGHT / 1.2);
         /*
          *响应全局键盘事件
          */
@@ -268,12 +264,10 @@ public class ImageMarking extends Application {
         primaryStage.setResizable(true);
         primaryStage.setOnCloseRequest((e) -> {
             if (isChanged) {
-                Optional<ButtonType> result = showAlert(primaryStage);
-                if (result.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                ButtonBar.ButtonData result = showAlert(primaryStage);
+                if (result == ButtonBar.ButtonData.YES) {
                     save(xmlPath.toFile());
-                } else if (result.get().getButtonData() == ButtonBar.ButtonData.NO) {
-
-                } else if (result.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) {
+                } else if (result == ButtonBar.ButtonData.CANCEL_CLOSE) {
                     e.consume();
                 }
             }
@@ -415,31 +409,6 @@ public class ImageMarking extends Application {
         );
         File file = fileChooser.showOpenDialog(stage);
         return file;
-//        JFileChooser fileChooser=new JFileChooser();
-//        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-//        fileChooser.setFileFilter(new FileFilter() {
-//            @Override
-//            public boolean accept(File f) {
-//                return f.isDirectory() ||
-//                        f.getName().toLowerCase().endsWith(".jpg") ||
-//                        f.getName().toLowerCase().endsWith(".jpeg") ||
-//                        f.getName().toLowerCase().endsWith(".png") ||
-//                        f.getName().toLowerCase().endsWith(".gif") ||
-//                        f.getName().toLowerCase().endsWith(".bmp");
-//            }
-//
-//            @Override
-//            public String getDescription() {
-//                return "*.jpg;*.jpeg;*.png;*.gif;*.bmp";
-//            }
-//        });
-//        fileChooser.showOpenDialog(new JLabel());
-//        File file = fileChooser.getSelectedFile();
-//        if (file != null) {
-//            System.out.println("文件:" + file.getAbsolutePath());
-//            System.out.println(fileChooser.getSelectedFile().getName());
-//            return file.toURI().toString();
-//        } else return null;
     }
 
     private void save(File xmlFile) {
@@ -515,7 +484,7 @@ public class ImageMarking extends Application {
         }
     }
 
-    private Optional<ButtonType> showAlert(Stage stage) {
+    private ButtonBar.ButtonData showAlert(Stage stage) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
                 "  ",
                 new ButtonType("不保存", ButtonBar.ButtonData.NO),
@@ -524,7 +493,7 @@ public class ImageMarking extends Application {
         alert.setTitle("");
         alert.setHeaderText("当前修改内容还未保存,是否保存？");
         alert.initOwner(stage);
-        return alert.showAndWait();
+        return alert.showAndWait().get().getButtonData();
     }
 
     public static void main(String... args) {

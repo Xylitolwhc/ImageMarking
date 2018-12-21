@@ -74,9 +74,6 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
      *测试功能
      */
     private void bindActionEcent(Canvas canvas) {
-        canvas.setOnMouseClicked((e) -> {
-            getSkinnable().fireEvent(e);
-        });
         canvas.addEventHandler(MouseEvent.MOUSE_ENTERED, (e) -> {
             getSkinnable().getScene().setCursor(Cursor.HAND);
         });
@@ -94,7 +91,7 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
                     && y < heightPadding + height + radius * 4) {
                 getSkinnable().getScene().setCursor(Cursor.SE_RESIZE);
                 getSkinnable().setState(TagState.ATTEMPT_TO_RESIZE);
-            } else if (true) {
+            } else {
                 getSkinnable().getScene().setCursor(Cursor.MOVE);
                 getSkinnable().setState(TagState.ATTEMPT_TO_MOVE);
             }

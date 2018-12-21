@@ -1,24 +1,19 @@
 package CustomUI;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ObjectPropertyBase;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 public class TagBlockControl extends Control {
-    public final static double TAG_WIDTH_PADDING_DEFAULT = 10.0,
+    private final static double TAG_WIDTH_PADDING_DEFAULT = 10.0,
             TAG_HEIGHT_PADDING_DEFAULT = 10.0,
             TAG_RADIUS_DEFAULT = 2.5;
 
-    private DoubleProperty tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, textX, textY, zoomScale;
+    private DoubleProperty tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, zoomScale;
     private Color pointColor, lineColor;
     private TagState state;
     private TextField textField;
@@ -34,8 +29,6 @@ public class TagBlockControl extends Control {
         tagWidthPadding = new SimpleDoubleProperty(TAG_WIDTH_PADDING_DEFAULT);
         tagHeightPadding = new SimpleDoubleProperty(TAG_HEIGHT_PADDING_DEFAULT);
         tagRadius = new SimpleDoubleProperty(TAG_RADIUS_DEFAULT);
-        textX = new SimpleDoubleProperty(0);
-        textY = new SimpleDoubleProperty(0);
         textField = new TextField();
         zoomScale = new SimpleDoubleProperty(1.0);
         pointColor = Color.BLACK;
@@ -169,10 +162,6 @@ public class TagBlockControl extends Control {
         return textField;
     }
 
-    public void setTextField(TextField textField) {
-        this.textField = textField;
-    }
-
     public void setText(String text) {
         this.textField.setText(text);
     }
@@ -187,10 +176,6 @@ public class TagBlockControl extends Control {
 
     public DoubleProperty zoomScaleProperty() {
         return zoomScale;
-    }
-
-    public void setZoomScale(double zoomScale) {
-        this.zoomScale.set(zoomScale);
     }
 
     public Color getPointColor() {
@@ -210,39 +195,6 @@ public class TagBlockControl extends Control {
         this.lineColor = lineColor;
         updateBlock();
     }
-
-    /*
-     *添加事件
-     */
-
-    public final ObjectProperty<EventHandler<ActionEvent>> onActionProperty() {
-        return onAction;
-    }
-
-    public EventHandler<ActionEvent> getOnAction() {
-        return onActionProperty().get();
-    }
-
-    public void setOnAction(EventHandler<ActionEvent> onAction) {
-        onActionProperty().set(onAction);
-    }
-
-    private ObjectProperty<EventHandler<ActionEvent>> onAction = new ObjectPropertyBase<EventHandler<ActionEvent>>() {
-        @Override
-        protected void invalidated() {
-            setEventHandler(ActionEvent.ACTION, get());
-        }
-
-        @Override
-        public Object getBean() {
-            return TagBlockControl.this;
-        }
-
-        @Override
-        public String getName() {
-            return "onAction";
-        }
-    };
 
     @Override
     protected Skin<?> createDefaultSkin() {
