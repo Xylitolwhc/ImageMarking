@@ -484,6 +484,7 @@ public class ImageMarking extends Application {
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.transform(new DOMSource(document), new StreamResult(xmlFile));
+            isChanged = false;
         } catch (Exception e) {
             e.printStackTrace();
         }
