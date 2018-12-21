@@ -17,7 +17,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -29,10 +28,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+/*
+ * @author Xylitolwhc
+ * @date 2018.10.26
+ */
 
 public class ImageMarking extends Application {
     public final static double SCREEN_WIDTH = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth(),
@@ -45,16 +48,20 @@ public class ImageMarking extends Application {
     private Path imagePath, xmlPath;
     private DoubleProperty imageWidth, imageHeight, zoomScale;
     private AnchorPane anchorPane;
+    private Boolean isChanged = false;
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Test");
+        primaryStage.setTitle("通用图片文字标注软件");
 
         /*
          *创建图片显示图层
          *默认使用javafx图片
          */
-        Image image = new Image("https://docs.oracle.com/javafx/javafx/images/javafx-documentation.png");
+        File defaultImage = new File("resources" + File.separator + "javafx-documentation.png");
+        imagePath = defaultImage.toPath();
+        xmlPath = new File("resources" + File.separator + "javafx-documentation.xml").toPath();
+        Image image = new Image(defaultImage.toURI().toString());
         ImageView imageView = new ImageView();
         imageView.preserveRatioProperty().set(true);
         imageView.setImage(image);
@@ -110,6 +117,7 @@ public class ImageMarking extends Application {
                     selectedTagBlock.getTextField().setVisible(true);
                     selectedTagBlock.getTextField().requestFocus();
                     selectedTagBlock.creationDone();
+                    isChanged = true;
                 }
                 mouseMovement = null;
             }
@@ -173,33 +181,20 @@ public class ImageMarking extends Application {
          */
         Button buttonOpen = new Button("Open");
         buttonOpen.setOnAction((e) -> {
-            File newFile = getImage(primaryStage);
-            if (newFile != null) {
-                anchorPane.getChildren().clear();
-                tagBlocks.clear();
-                try {
-                    Image newImage = new Image(newFile.toURI().toString());
-                    imageView.setImage(newImage);
-                    if (!anchorPane.getChildren().contains(imageView)) {
-                        anchorPane.getChildren().add(imageView);
+            if (isChanged) {
+                Optional<ButtonType> result = showAlert(primaryStage);
+                if (result.get().getButtonData() == ButtonBar.ButtonData.YES || result.get().getButtonData() == ButtonBar.ButtonData.NO) {
+                    if (result.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                        save(xmlPath.toFile());
                     }
-                    imageWidth.set(newImage.getWidth());
-                    imageHeight.set(newImage.getHeight());
-                    movableAnchorPane.setTopAnchor(anchorPane, 0.0);
-                    movableAnchorPane.setLeftAnchor(anchorPane, 0.0);
-                    imagePath = newFile.toPath();
-                    //判断是否有同名xml文件
-                    int position = imagePath.toString().lastIndexOf(".");
-                    File xmlFile = new File(imagePath.toString().substring(0, position + 1) + "xml");
-                    xmlPath = xmlFile.toPath();
-                    System.out.println(xmlFile.exists());
-                    if (xmlFile.exists()) {
-                        readXml(xmlFile);
-                    }
-                    zoomScale.set(1.0);
-                } catch (Exception exception) {
-                    exception.printStackTrace();
+                    openNewImage(primaryStage, imageView, movableAnchorPane);
+                    isChanged = false;
+                } else if (result.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) {
+                    //Do Nothing
                 }
+            } else {
+                openNewImage(primaryStage, imageView, movableAnchorPane);
+                isChanged = false;
             }
         });
         buttonOpen.setPrefSize(200, 50);
@@ -207,7 +202,7 @@ public class ImageMarking extends Application {
         Button buttonSave = new Button("Save");
         buttonSave.setPrefSize(200, 50);
         buttonSave.setOnAction((e) -> {
-            save(xmlPath);
+            save(xmlPath.toFile());
         });
 
         /*
@@ -264,14 +259,26 @@ public class ImageMarking extends Application {
                 }
                 case S: {
                     if (e.isShortcutDown()) {
-                        showAlert(primaryStage);
-                        save(xmlPath);
+                        save(xmlPath.toFile());
                     }
                 }
             }
         });
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
+        primaryStage.setOnCloseRequest((e) -> {
+            if (isChanged) {
+                Optional<ButtonType> result = showAlert(primaryStage);
+                System.out.println(result);
+                if (result.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                    save(xmlPath.toFile());
+                } else if (result.get().getButtonData() == ButtonBar.ButtonData.NO) {
+
+                } else if (result.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) {
+                    e.consume();
+                }
+            }
+        });
         primaryStage.show();
     }
 
@@ -302,7 +309,6 @@ public class ImageMarking extends Application {
     private void bindEvent(TagBlockControl tagBlock, AnchorPane anchorPane) {
         tagBlock.addEventHandler(MouseEvent.MOUSE_PRESSED, (event) -> {
             if (tagBlock.isCreationDone() && event.getButton() == MouseButton.PRIMARY) {
-
                 switch (tagBlock.getState()) {
                     case ATTEMPT_TO_MOVE: {
                         tagBlock.setState(TagState.MOVING);
@@ -344,6 +350,7 @@ public class ImageMarking extends Application {
                 tagBlock.getScene().setCursor(Cursor.DEFAULT);
                 tagBlock.setState(TagState.SELECTED);
                 mouseProperty = null;
+                isChanged = true;
             }
         });
         tagBlock.zoomScaleProperty().bind(zoomScale);
@@ -363,6 +370,38 @@ public class ImageMarking extends Application {
         tagBlock.updateBlock(width, height);
         anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getY() + tagBlock.getTagHeight() + tagBlock.getTagHeightPadding()) * zoomScale.get());
         anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getX() + tagBlock.getTagWidth() + tagBlock.getTagWidthPadding()) * zoomScale.get());
+    }
+
+    private void openNewImage(Stage primaryStage, ImageView imageView, AnchorPane movableAnchorPane) {
+        File newFile = getImage(primaryStage);
+        if (newFile != null) {
+            anchorPane.getChildren().clear();
+            tagBlocks.clear();
+            try {
+                Image newImage = new Image(newFile.toURI().toString());
+                imageView.setImage(newImage);
+                if (!anchorPane.getChildren().contains(imageView)) {
+                    anchorPane.getChildren().add(imageView);
+                }
+                imageWidth.set(newImage.getWidth());
+                imageHeight.set(newImage.getHeight());
+                movableAnchorPane.setTopAnchor(anchorPane, 0.0);
+                movableAnchorPane.setLeftAnchor(anchorPane, 0.0);
+                imagePath = newFile.toPath();
+                //判断是否有同名xml文件
+                int position = imagePath.toString().lastIndexOf(".");
+                File xmlFile = new File(imagePath.toString().substring(0, position + 1) + "xml");
+                xmlPath = xmlFile.toPath();
+                System.out.println(xmlFile.exists());
+                if (xmlFile.exists()) {
+                    readXml(xmlFile);
+                }
+                zoomScale.set(1.0);
+                isChanged = false;
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
     }
 
     private File getImage(Stage stage) {
@@ -405,7 +444,7 @@ public class ImageMarking extends Application {
 //        } else return null;
     }
 
-    private void save(Path path) {
+    private void save(File xmlFile) {
         //dom
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         builderFactory.setIgnoringElementContentWhitespace(false);
@@ -444,7 +483,7 @@ public class ImageMarking extends Application {
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(new DOMSource(document), new StreamResult(path.toFile()));
+            transformer.transform(new DOMSource(document), new StreamResult(xmlFile));
         } catch (Exception e) {
             e.printStackTrace();
         }
