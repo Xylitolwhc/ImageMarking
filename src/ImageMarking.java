@@ -725,6 +725,10 @@ public class ImageMarking extends Application {
                 width.setTextContent(tagBlock.getTagWidth() + "");
                 Element height = document.createElement("height");
                 height.setTextContent(tagBlock.getTagHeight() + "");
+                Element widthPadding = document.createElement("widthPadding");
+                widthPadding.setTextContent(tagBlock.getTagWidthPadding() + "");
+                Element heightPadding = document.createElement("heightPadding");
+                heightPadding.setTextContent(tagBlock.getTagHeightPadding() + "");
                 Element lineColor = document.createElement("lineColor");
                 lineColor.setTextContent(tagBlock.getLineColor().toString());
                 Element pointColor = document.createElement("pointColor");
@@ -735,6 +739,8 @@ public class ImageMarking extends Application {
                 tagBlockElement.appendChild(y);
                 tagBlockElement.appendChild(width);
                 tagBlockElement.appendChild(height);
+                tagBlockElement.appendChild(widthPadding);
+                tagBlockElement.appendChild(heightPadding);
                 tagBlockElement.appendChild(lineColor);
                 tagBlockElement.appendChild(pointColor);
                 tagBlockElement.appendChild(text);
@@ -770,12 +776,16 @@ public class ImageMarking extends Application {
                 double y = Double.parseDouble(element.getElementsByTagName("y").item(0).getTextContent());
                 double width = Double.parseDouble(element.getElementsByTagName("width").item(0).getTextContent());
                 double height = Double.parseDouble(element.getElementsByTagName("height").item(0).getTextContent());
+                double widthPadding = Double.parseDouble(element.getElementsByTagName("widthPadding").item(0).getTextContent());
+                double heightPadding = Double.parseDouble(element.getElementsByTagName("heightPadding").item(0).getTextContent());
                 Color lineColor = Color.valueOf(element.getElementsByTagName("lineColor").item(0).getTextContent());
                 Color pointColor = Color.valueOf(element.getElementsByTagName("pointColor").item(0).getTextContent());
                 String text = element.getElementsByTagName("text").item(0).getTextContent();
                 createTagBlock(anchorPane, x, y, width, height, text);
                 selectedTagBlock.setLineColor(lineColor);
                 selectedTagBlock.setPointColor(pointColor);
+                selectedTagBlock.setTagWidthPadding(widthPadding);
+                selectedTagBlock.setTagHeightPadding(heightPadding);
                 tagBlocks.add(selectedTagBlock);
             }
             unSelectTagBlock();

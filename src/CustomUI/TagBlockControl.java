@@ -9,8 +9,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 
 public class TagBlockControl extends Control {
-    private final static double TAG_WIDTH_PADDING_DEFAULT = 10.0,
-            TAG_HEIGHT_PADDING_DEFAULT = 10.0,
+    private final static double TAG_WIDTH_PADDING_DEFAULT = 3.0,
+            TAG_HEIGHT_PADDING_DEFAULT = 3.0,
             TAG_RADIUS_DEFAULT = 2.5;
 
     private DoubleProperty tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, zoomScale, lineWidth;
