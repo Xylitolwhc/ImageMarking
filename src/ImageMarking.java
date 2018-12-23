@@ -71,6 +71,7 @@ public class ImageMarking extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("通用图片文字标注软件");
+        primaryStage.getIcons().add(new Image("resources" + File.separator + "ImageMarker.png"));
 
         /*
          * 创建图片显示图层
