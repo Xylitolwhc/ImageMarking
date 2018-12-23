@@ -1,7 +1,6 @@
 package CustomUI;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
