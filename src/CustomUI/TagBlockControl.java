@@ -1,6 +1,7 @@
 package CustomUI;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
@@ -13,7 +14,7 @@ public class TagBlockControl extends Control {
             TAG_HEIGHT_PADDING_DEFAULT = 10.0,
             TAG_RADIUS_DEFAULT = 2.5;
 
-    private DoubleProperty tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, zoomScale;
+    private DoubleProperty tagX, tagY, tagWidth, tagHeight, tagWidthPadding, tagHeightPadding, tagRadius, zoomScale, lineWidth;
     private Color pointColor, lineColor;
     private TagState state;
     private TextField textField;
@@ -31,10 +32,14 @@ public class TagBlockControl extends Control {
         tagRadius = new SimpleDoubleProperty(TAG_RADIUS_DEFAULT);
         textField = new TextField();
         zoomScale = new SimpleDoubleProperty(1.0);
+        lineWidth = new SimpleDoubleProperty(1.0);
         pointColor = Color.BLACK;
         lineColor = Color.BLACK;
         textField.setPrefColumnCount(10);
         state = TagState.CREATING;
+
+        zoomScale.addListener((e) -> updateBlock());
+        lineWidth.addListener((e) -> updateBlock());
     }
 
     /*
@@ -89,69 +94,34 @@ public class TagBlockControl extends Control {
     }
 
     /*
-     *getter & setter
+     * Getter
      */
-    public Double getX() {
+    public double getTagX() {
         return tagX.get();
     }
 
-    public Double getY() {
+    public double getTagY() {
         return tagY.get();
     }
 
-    public Double getTagX() {
-        return tagX.get();
-    }
-
-    public Double getTagY() {
-        return tagY.get();
-    }
-
-    public Double getTagWidth() {
+    public double getTagWidth() {
         return tagWidth.get();
     }
 
-    public Double getTagHeight() {
+    public double getTagHeight() {
         return tagHeight.get();
     }
 
-    public void setTagWidthPadding(double tagWidthPadding) {
-        this.tagWidthPadding.setValue(tagWidthPadding);
-        updateBlock();
+    public double getTagWidthPadding() {
+        return tagWidthPadding.get();
     }
 
-    public void setTagHeightPadding(double tagHeightPadding) {
-        this.tagHeightPadding.setValue(tagHeightPadding);
-        updateBlock();
-    }
-
-    public Double getTagWidthPadding() {
-        return tagWidthPadding.getValue();
-    }
-
-    public Double getTagHeightPadding() {
-        return tagHeightPadding.getValue();
-    }
-
-    public void setTagRadius(double tagRadius) {
-        this.tagRadius.setValue(tagRadius);
-        updateBlock();
+    public double getTagHeightPadding() {
+        return tagHeightPadding.get();
     }
 
     public double getTagRadius() {
-        return tagRadius.getValue();
-    }
-
-    public Boolean isCreationDone() {
-        return state != TagState.CREATING;
-    }
-
-    public void creationDone() {
-        this.state = TagState.CREATION_DONE;
-    }
-
-    public void setState(TagState state) {
-        this.state = state;
+        return tagRadius.get();
     }
 
     public TagState getState() {
@@ -162,10 +132,6 @@ public class TagBlockControl extends Control {
         return textField;
     }
 
-    public void setText(String text) {
-        this.textField.setText(text);
-    }
-
     public String getText() {
         return this.textField.getText();
     }
@@ -174,12 +140,94 @@ public class TagBlockControl extends Control {
         return zoomScale.get();
     }
 
+    public Color getPointColor() {
+        return pointColor;
+    }
+
+    public Color getLineColor() {
+        return lineColor;
+    }
+
+    public double getLineWidth() {
+        return lineWidth.get();
+    }
+
+    /*
+     * Property
+     */
+    public DoubleProperty tagXProperty() {
+        return tagX;
+    }
+
+    public DoubleProperty tagYProperty() {
+        return tagY;
+    }
+
+    public DoubleProperty tagWidthProperty() {
+        return tagWidth;
+    }
+
+    public DoubleProperty tagHeightProperty() {
+        return tagHeight;
+    }
+
+    public DoubleProperty tagWidthPaddingProperty() {
+        return tagWidthPadding;
+    }
+
+    public DoubleProperty tagHeightPaddingProperty() {
+        return tagHeightPadding;
+    }
+
+    public DoubleProperty tagRadiusProperty() {
+        return tagRadius;
+    }
+
     public DoubleProperty zoomScaleProperty() {
         return zoomScale;
     }
 
-    public Color getPointColor() {
-        return pointColor;
+    public DoubleProperty lineWidthProperty() {
+        return lineWidth;
+    }
+
+    /*
+     * Setter
+     */
+    public void setTagX(double tagX) {
+        this.tagX.set(tagX);
+    }
+
+    public void setTagY(double tagY) {
+        this.tagY.set(tagY);
+    }
+
+    public void setTagWidth(double tagWidth) {
+        this.tagWidth.set(tagWidth);
+    }
+
+    public void setTagHeight(double tagHeight) {
+        this.tagHeight.set(tagHeight);
+    }
+
+    public void setTagWidthPadding(double tagWidthPadding) {
+        this.tagWidthPadding.set(tagWidthPadding);
+    }
+
+    public void setTagHeightPadding(double tagHeightPadding) {
+        this.tagHeightPadding.set(tagHeightPadding);
+    }
+
+    public void setTagRadius(double tagRadius) {
+        this.tagRadius.set(tagRadius);
+    }
+
+    public void setState(TagState state) {
+        this.state = state;
+    }
+
+    public void setText(String text) {
+        this.textField.setText(text);
     }
 
     public void setPointColor(Color pointColor) {
@@ -187,51 +235,26 @@ public class TagBlockControl extends Control {
         updateBlock();
     }
 
-    public Color getLineColor() {
-        return lineColor;
-    }
-
     public void setLineColor(Color lineColor) {
         this.lineColor = lineColor;
         updateBlock();
     }
 
+    public void setLineWidth(double lineWidth) {
+        this.lineWidth.set(lineWidth);
+    }
+
+    public Boolean isCreationDone() {
+        return state != TagState.CREATING;
+    }
+
+    public void creationDone() {
+        this.state = TagState.CREATION_DONE;
+    }
+
     @Override
     protected Skin<?> createDefaultSkin() {
         return new TagBlockSkin(this);
-    }
-
-    /*
-     *计算当前控件大小
-     */
-    @Override
-    protected double computeMinWidth(double height) {
-        return super.computeMinWidth(height);
-    }
-
-    @Override
-    protected double computeMinHeight(double width) {
-        return super.computeMinHeight(width);
-    }
-
-    @Override
-    protected double computeMaxWidth(double height) {
-        return super.computeMaxWidth(height);
-    }
-
-    @Override
-    protected double computeMaxHeight(double width) {
-        return super.computeMaxHeight(width);
-    }
-
-    @Override
-    protected double computePrefWidth(double height) {
-        return super.computePrefWidth(height);
-    }
-
-    @Override
-    protected double computePrefHeight(double width) {
-        return super.computePrefHeight(width);
     }
 
     /*

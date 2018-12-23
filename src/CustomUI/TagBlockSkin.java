@@ -38,7 +38,8 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
                 heightPadding = getSkinnable().getTagHeightPadding() * zoomScale,
                 width = getSkinnable().getTagWidth() * zoomScale,
                 height = getSkinnable().getTagHeight() * zoomScale,
-                radius = getSkinnable().getTagRadius();
+                radius = getSkinnable().getTagRadius(),
+                lineWidth = getSkinnable().getLineWidth();
         Color lineColor = getSkinnable().getLineColor(),
                 pointColor = getSkinnable().getPointColor();
 
@@ -51,7 +52,7 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         canvas = new Canvas(width + widthPadding * 2, height + heightPadding * 2);
         GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
         //上下左右四条边框
-        graphicsContext.setLineWidth(1);
+        graphicsContext.setLineWidth(lineWidth);
         graphicsContext.setFill(lineColor);
         graphicsContext.setStroke(lineColor);
         graphicsContext.strokeLine(widthPadding, heightPadding, widthPadding + width, heightPadding);
