@@ -807,7 +807,7 @@ public class ImageMarking extends Application {
         jfxAlert.setOverlayClose(true);
         jfxAlert.setAnimation(JFXAlertAnimation.CENTER_ANIMATION);
         jfxAlert.setContent(jfxDialogLayout);
-        jfxAlert.initModality(Modality.NONE);
+        jfxAlert.initModality(Modality.WINDOW_MODAL);
         jfxAlert.showAndWait();
     }
 
