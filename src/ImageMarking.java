@@ -67,6 +67,7 @@ public class ImageMarking extends Application {
     private ButtonBar.ButtonData alertResult;
     private JFXColorPicker pointColorPicker, lineColorPicker;
     private JFXSlider tagXSlider, tagYSlider, tagWidthSlider, tagHeightSlider, tagWidthPaddingSlider, tagHeightPaddingSlider;
+    private JFXListView<HBox> jfxListView;
 
     @Override
     public void start(Stage primaryStage) {
@@ -372,15 +373,36 @@ public class ImageMarking extends Application {
          */
         anchorPane.getChildren().add(newTagBlock);
         anchorPane.getChildren().add(newTagBlock.getTextField());
-        tagBlocks.add(newTagBlock);
+        addTagBlock(newTagBlock);
         moveTagBlock(newTagBlock, anchorPane, x, y);
         selectedTagBlock = newTagBlock;
     }
 
+    private void addTagBlock(TagBlockControl tagBlock) {
+        if (!tagBlocks.contains(tagBlock)) {
+            tagBlocks.add(tagBlock);
+        }
+        if (jfxListView != null) {
+            Label num = new Label((tagBlocks.indexOf(tagBlock) + 1) + ":");
+            Label text = new Label();
+            text.textProperty().bindBidirectional(tagBlock.getTextField().textProperty());
+            HBox hBox = new HBox();
+            hBox.getChildren().addAll(num, text);
+            hBox.setOnMouseClicked((event) -> {
+                selectTagBlock(tagBlock);
+            });
+            jfxListView.getItems().add(hBox);
+        }
+    }
+
     private StackPane stackPaneWithLabel(String title) {
+        return stackPaneWithLabel(title, Pos.TOP_LEFT);
+    }
+
+    private StackPane stackPaneWithLabel(String title, Pos pos) {
         Label label = new Label(title);
         StackPane stackPane = new StackPane(label);
-        stackPane.setAlignment(Pos.TOP_LEFT);
+        stackPane.setAlignment(pos);
         stackPane.setPadding(new Insets(5, 0, 0, 0));
         return stackPane;
     }
@@ -392,6 +414,10 @@ public class ImageMarking extends Application {
         anchorPane.getChildren().remove(tagBlock);
         anchorPane.getChildren().remove(tagBlock.getTextField());
         tagBlocks.remove(tagBlock);
+        jfxListView.getItems().clear();
+        for (TagBlockControl tagBlockControl : tagBlocks) {
+            addTagBlock(tagBlockControl);
+        }
         unSelectTagBlock();
     }
 
@@ -411,7 +437,6 @@ public class ImageMarking extends Application {
                         break;
                     }
                 }
-                unSelectTagBlock();
                 selectTagBlock(tagBlock);
                 mouseProperty = new MouseProperty(event);
                 event.consume();
@@ -542,6 +567,13 @@ public class ImageMarking extends Application {
         StackPane lineColorPickerPane = new StackPane(lineColorPicker);
         lineColorPickerPane.setAlignment(Pos.TOP_RIGHT);
 
+        jfxListView = new JFXListView();
+        jfxListView.setVerticalGap(3.0);
+        for (TagBlockControl tagBlock : tagBlocks) {
+            addTagBlock(tagBlock);
+        }
+        jfxListView.setPrefHeight(SCREEN_HEIGHT / 2);
+
         VBox vBox = new VBox();
         vBox.setMinWidth(150);
         vBox.setAlignment(Pos.TOP_CENTER);
@@ -554,7 +586,8 @@ public class ImageMarking extends Application {
                 tagWidthPaddingLabel, tagWidthPaddingSlider,
                 tagHeightPaddingLabel, tagHeightPaddingSlider,
                 pointColorLabel, pointColorPickerPane,
-                lineColorLabel, lineColorPickerPane);
+                lineColorLabel, lineColorPickerPane,
+                jfxListView);
         return vBox;
     }
 
@@ -651,7 +684,11 @@ public class ImageMarking extends Application {
      * 选择标记框并与属性面板各项内容绑定
      */
     private void selectTagBlock(TagBlockControl tagBlock) {
+        if (selectedTagBlock != null) unSelectTagBlock();
         selectedTagBlock = tagBlock;
+        if (selectedTagBlock.getTextField() != null) {
+            selectedTagBlock.getTextField().requestFocus();
+        }
         if (lineColorPicker != null)
             lineColorPicker.setValue(selectedTagBlock.getLineColor());
         if (pointColorPicker != null)
@@ -786,7 +823,7 @@ public class ImageMarking extends Application {
                 selectedTagBlock.setPointColor(pointColor);
                 selectedTagBlock.setTagWidthPadding(widthPadding);
                 selectedTagBlock.setTagHeightPadding(heightPadding);
-                tagBlocks.add(selectedTagBlock);
+                addTagBlock(selectedTagBlock);
             }
             unSelectTagBlock();
         } catch (Exception e) {

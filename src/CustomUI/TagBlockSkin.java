@@ -1,17 +1,20 @@
 package CustomUI;
 
+import javafx.animation.FadeTransition;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.SkinBase;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 
 public class TagBlockSkin extends SkinBase<TagBlockControl> {
     private Double minWidthPadding, minHeightPadding, maxWidthPadding, maxHeightPadding;
     private Canvas canvas;
     private Boolean invalidBlock = true;
+    private FadeTransition fadeTransition;
 
     /**
      * Constructor for all SkinBase instances.
@@ -24,6 +27,21 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         minWidthPadding = 0.0;
         maxWidthPadding = 0.0;
         maxHeightPadding = 0.0;
+
+        fadeTransition = new FadeTransition();
+        fadeTransition.setNode(getSkinnable().getTextField());
+        fadeTransition.setDuration(new Duration(500));
+        fadeTransition.setFromValue(1.00);
+        fadeTransition.setToValue(0);
+        getSkinnable().getTextField().focusedProperty().addListener((event) -> {
+            if (!getSkinnable().getTextField().isFocused()) {
+                fadeTransition.playFromStart();
+            }else{
+                fadeTransition.stop();
+                fadeTransition.jumpTo(Duration.ZERO);
+                getSkinnable().getTextField().setOpacity(1.00);
+            }
+        });
     }
 
     /*
@@ -77,6 +95,8 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
     private void bindActionEcent(Canvas canvas) {
         canvas.addEventHandler(MouseEvent.MOUSE_ENTERED, (e) -> {
             getSkinnable().getScene().setCursor(Cursor.HAND);
+            fadeTransition.stop();
+            getSkinnable().getTextField().setOpacity(1.00);
         });
         canvas.addEventHandler(MouseEvent.MOUSE_MOVED, (e) -> {
             double zoomScale = getSkinnable().getZoomScale(),
@@ -100,6 +120,9 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         });
         canvas.addEventHandler(MouseEvent.MOUSE_EXITED, (e) -> {
             getSkinnable().getScene().setCursor(Cursor.DEFAULT);
+            if (!getSkinnable().getTextField().isFocused()) {
+                fadeTransition.playFromStart();
+            }
         });
     }
 
