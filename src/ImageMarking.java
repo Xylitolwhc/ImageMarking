@@ -50,9 +50,9 @@ public class ImageMarking extends Application {
             buttonStyleRed = "-jfx-button-type: RAISED;" +
                     "-fx-background-color: red;" +
                     "-fx-text-fill: white;",
-            buttonStyleBlue = "-jfx-button-type: RAISED;" +
-                    "-fx-background-color: blue;" +
-                    "-fx-text-fill: white;",
+            buttonStyleBlue = "-jfx-button-type: FLAT;" +
+                    "-fx-background-color: white;" +
+                    "-fx-text-fill: deepskyblue;",
             buttonStyleWhite = "-jfx-button-type: RAISED;" +
                     "-fx-background-color: white;" +
                     "-fx-text-fill: black;";
@@ -68,6 +68,7 @@ public class ImageMarking extends Application {
     private JFXColorPicker pointColorPicker, lineColorPicker;
     private JFXSlider tagXSlider, tagYSlider, tagWidthSlider, tagHeightSlider, tagWidthPaddingSlider, tagHeightPaddingSlider;
     private JFXListView<HBox> jfxListView;
+    private StackPane root;
 
     @Override
     public void start(Stage primaryStage) {
@@ -120,17 +121,17 @@ public class ImageMarking extends Application {
                 double biasX = e.getScreenX() - mouseMovement.getScreenX(), biasY = e.getScreenY() - mouseMovement.getScreenY();
                 selectedTagBlock.updateBlock(Math.abs(biasX), Math.abs(biasY));
                 if (biasX >= 0 && biasY >= 0) {
-                    anchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
-                    anchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
+                    AnchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
+                    AnchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
                 } else if (biasX < 0 && biasY >= 0) {
-                    anchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
-                    anchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() + biasX - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
+                    AnchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
+                    AnchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() + biasX - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
                 } else if (biasX >= 0 && biasY < 0) {
-                    anchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() + biasY - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
-                    anchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
+                    AnchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() + biasY - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
+                    AnchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
                 } else if (biasX < 0 && biasY < 0) {
-                    anchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() + biasY - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
-                    anchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() + biasX - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
+                    AnchorPane.setTopAnchor(selectedTagBlock, (selectedTagBlock.getTagY() + biasY - selectedTagBlock.getTagHeightPadding()) * zoomScale.get());
+                    AnchorPane.setLeftAnchor(selectedTagBlock, (selectedTagBlock.getTagX() + biasX - selectedTagBlock.getTagWidthPadding()) * zoomScale.get());
                 }
             }
         });
@@ -144,7 +145,7 @@ public class ImageMarking extends Application {
                     anchorPane.requestFocus();
                 } else {
                     if (selectedTagBlock != null) {
-                        moveTagBlock(selectedTagBlock, anchorPane, anchorPane.getLeftAnchor(selectedTagBlock) + selectedTagBlock.getTagWidthPadding() * zoomScale.get(), anchorPane.getTopAnchor(selectedTagBlock) + selectedTagBlock.getTagHeightPadding() * zoomScale.get());
+                        moveTagBlock(selectedTagBlock, anchorPane, AnchorPane.getLeftAnchor(selectedTagBlock) + selectedTagBlock.getTagWidthPadding() * zoomScale.get(), AnchorPane.getTopAnchor(selectedTagBlock) + selectedTagBlock.getTagHeightPadding() * zoomScale.get());
                         selectedTagBlock.getTextField().setVisible(true);
                         selectedTagBlock.getTextField().requestFocus();
                         selectedTagBlock.creationDone();
@@ -161,12 +162,12 @@ public class ImageMarking extends Application {
          */
         AnchorPane movableAnchorPane = new AnchorPane();
         movableAnchorPane.getChildren().add(anchorPane);
-        movableAnchorPane.setLeftAnchor(anchorPane, 0.0);
-        movableAnchorPane.setTopAnchor(anchorPane, 0.0);
+        AnchorPane.setLeftAnchor(anchorPane, 0.0);
+        AnchorPane.setTopAnchor(anchorPane, 0.0);
         movableAnchorPane.setPrefHeight(SCREEN_HEIGHT / 1.2);
         movableAnchorPane.setPrefWidth(SCREEN_WIDTH / 1.2);
         movableAnchorPane.addEventHandler(ScrollEvent.ANY, (ScrollEvent e) -> {
-            double newX = movableAnchorPane.getLeftAnchor(anchorPane), newY = movableAnchorPane.getTopAnchor(anchorPane);
+            double newX = AnchorPane.getLeftAnchor(anchorPane), newY = AnchorPane.getTopAnchor(anchorPane);
             if (e.getDeltaY() > 0) {
                 newX = e.getX() - (e.getX() - newX) * 1.2;
                 newY = e.getY() - (e.getY() - newY) * 1.2;
@@ -176,8 +177,8 @@ public class ImageMarking extends Application {
                 newY = e.getY() - (e.getY() - newY) / 1.1;
                 zoomScale.set(zoomScale.get() / 1.1);
             }
-            movableAnchorPane.setLeftAnchor(anchorPane, newX);
-            movableAnchorPane.setTopAnchor(anchorPane, newY);
+            AnchorPane.setLeftAnchor(anchorPane, newX);
+            AnchorPane.setTopAnchor(anchorPane, newY);
             for (TagBlockControl tagBlock : tagBlocks) {
                 moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get());
             }
@@ -193,8 +194,8 @@ public class ImageMarking extends Application {
             if (e.getButton() == MouseButton.SECONDARY && movePane != null) {
                 double biasX = e.getScreenX() - movePane.getScreenX(),
                         biasY = e.getScreenY() - movePane.getScreenY();
-                movableAnchorPane.setLeftAnchor(anchorPane, movableAnchorPane.getLeftAnchor(anchorPane) + biasX);
-                movableAnchorPane.setTopAnchor(anchorPane, movableAnchorPane.getTopAnchor(anchorPane) + biasY);
+                AnchorPane.setLeftAnchor(anchorPane, AnchorPane.getLeftAnchor(anchorPane) + biasX);
+                AnchorPane.setTopAnchor(anchorPane, AnchorPane.getTopAnchor(anchorPane) + biasY);
                 movableAnchorPane.getScene().setCursor(Cursor.CLOSED_HAND);
                 movePane.set(e);
                 e.consume();
@@ -219,15 +220,15 @@ public class ImageMarking extends Application {
                 ButtonBar.ButtonData result = showJFXAlert(primaryStage);
                 if (result == ButtonBar.ButtonData.YES || result == ButtonBar.ButtonData.NO) {
                     if (result == ButtonBar.ButtonData.YES) {
-                        save(xmlPath.toFile(), primaryStage);
+                        save(xmlPath.toFile());
                     }
-                    openNewImage(primaryStage, imageView, movableAnchorPane);
+                    openNewImage(primaryStage, imageView);
                     isChanged = false;
                 } else if (result == ButtonBar.ButtonData.CANCEL_CLOSE) {
                     e.consume();
                 }
             } else {
-                openNewImage(primaryStage, imageView, movableAnchorPane);
+                openNewImage(primaryStage, imageView);
                 isChanged = false;
             }
         });
@@ -236,7 +237,7 @@ public class ImageMarking extends Application {
         JFXButton buttonSave = new JFXButton("保存");
         buttonSave.setStyle(buttonStyleGreen);
         buttonSave.setMinSize(150, 30);
-        buttonSave.setOnAction((e) -> save(xmlPath.toFile(), primaryStage));
+        buttonSave.setOnAction((e) -> save(xmlPath.toFile()));
 
         HBox buttons = new HBox();
         buttons.setSpacing(5.0);
@@ -273,7 +274,7 @@ public class ImageMarking extends Application {
          * 最底层的StackPane
          * 用于放置网格布局GridPane以及添加弹窗等功能
          */
-        StackPane root = new StackPane();
+        root = new StackPane();
         root.getChildren().add(gridPane);
 
         /*
@@ -284,7 +285,6 @@ public class ImageMarking extends Application {
          * 响应全局键盘事件
          */
         scene.addEventHandler(KeyEvent.KEY_PRESSED, (e) -> {
-            System.out.println(e.getCode());
             switch (e.getCode()) {
                 case DELETE: {
                     if (selectedTagBlock != null) {
@@ -299,13 +299,13 @@ public class ImageMarking extends Application {
                 }
                 case S: {
                     if (e.isShortcutDown()) {
-                        save(xmlPath.toFile(), primaryStage);
+                        save(xmlPath.toFile());
                     }
                 }
             }
         });
         scene.addEventFilter(KeyEvent.KEY_PRESSED, (e) -> {
-            Boolean isTyping = false;
+            boolean isTyping = false;
             for (TagBlockControl tagBlock : tagBlocks) {
                 if (tagBlock.getTextField().isFocused()) isTyping = true;
             }
@@ -348,7 +348,7 @@ public class ImageMarking extends Application {
             if (isChanged) {
                 ButtonBar.ButtonData result = showJFXAlert(primaryStage);
                 if (result == ButtonBar.ButtonData.YES) {
-                    save(xmlPath.toFile(), primaryStage);
+                    save(xmlPath.toFile());
                 } else if (result == ButtonBar.ButtonData.CANCEL_CLOSE) {
                     e.consume();
                 }
@@ -388,21 +388,15 @@ public class ImageMarking extends Application {
             text.textProperty().bindBidirectional(tagBlock.getTextField().textProperty());
             HBox hBox = new HBox();
             hBox.getChildren().addAll(num, text);
-            hBox.setOnMouseClicked((event) -> {
-                selectTagBlock(tagBlock);
-            });
+            hBox.setOnMouseClicked((event) -> selectTagBlock(tagBlock));
             jfxListView.getItems().add(hBox);
         }
     }
 
     private StackPane stackPaneWithLabel(String title) {
-        return stackPaneWithLabel(title, Pos.TOP_LEFT);
-    }
-
-    private StackPane stackPaneWithLabel(String title, Pos pos) {
         Label label = new Label(title);
         StackPane stackPane = new StackPane(label);
-        stackPane.setAlignment(pos);
+        stackPane.setAlignment(Pos.TOP_LEFT);
         stackPane.setPadding(new Insets(5, 0, 0, 0));
         return stackPane;
     }
@@ -432,8 +426,12 @@ public class ImageMarking extends Application {
                         tagBlock.setState(TagState.MOVING);
                         break;
                     }
-                    case ATTEMPT_TO_RESIZE: {
-                        tagBlock.setState(TagState.RESIZING);
+                    case ATTEMPT_TO_RESIZE_RIGHT_BUTTOM: {
+                        tagBlock.setState(TagState.RESIZING_RIGHT_BUTTOM);
+                        break;
+                    }
+                    case ATTEMPT_TO_RESIZE_LEFT_UP: {
+                        tagBlock.setState(TagState.RESIZING_LEFT_UP);
                         break;
                     }
                 }
@@ -452,8 +450,19 @@ public class ImageMarking extends Application {
                             tagBlock.getScene().setCursor(Cursor.MOVE);
                             break;
                         }
-                        case RESIZING: {
-                            resizeTagBlock(selectedTagBlock, anchorPane, selectedTagBlock.getTagWidth() * zoomScale.get() + moveBiasX, selectedTagBlock.getTagHeight() * zoomScale.get() + moveBiasY);
+                        case RESIZING_RIGHT_BUTTOM: {
+                            if (!(moveBiasX + selectedTagBlock.getTagWidth() < 0)
+                                    && !(moveBiasY + selectedTagBlock.getTagHeight() < 0)) {
+                                resizeTagBlock(selectedTagBlock, anchorPane, selectedTagBlock.getTagWidth() * zoomScale.get() + moveBiasX, selectedTagBlock.getTagHeight() * zoomScale.get() + moveBiasY);
+                            }
+                            break;
+                        }
+                        case RESIZING_LEFT_UP: {
+                            if (!(moveBiasX > selectedTagBlock.getTagWidth())
+                                    && !(moveBiasY > selectedTagBlock.getTagHeight())) {
+                                moveTagBlock(selectedTagBlock, anchorPane, selectedTagBlock.getTagX() * zoomScale.get() + moveBiasX, selectedTagBlock.getTagY() * zoomScale.get() + moveBiasY);
+                                resizeTagBlock(selectedTagBlock, anchorPane, selectedTagBlock.getTagWidth() * zoomScale.get() - moveBiasX, selectedTagBlock.getTagHeight() * zoomScale.get() - moveBiasY);
+                            }
                             break;
                         }
                     }
@@ -488,18 +497,10 @@ public class ImageMarking extends Application {
             }
             moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get());
         });
-        tagBlock.tagWidthProperty().addListener(observable -> {
-            moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get());
-        });
-        tagBlock.tagHeightProperty().addListener(observable -> {
-            moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get());
-        });
-        tagBlock.tagWidthPaddingProperty().addListener(observable -> {
-            moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get());
-        });
-        tagBlock.tagHeightPaddingProperty().addListener(observable -> {
-            moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get());
-        });
+        tagBlock.tagWidthProperty().addListener(observable -> moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get()));
+        tagBlock.tagHeightProperty().addListener(observable -> moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get()));
+        tagBlock.tagWidthPaddingProperty().addListener(observable -> moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get()));
+        tagBlock.tagHeightPaddingProperty().addListener(observable -> moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get(), tagBlock.getTagY() * zoomScale.get()));
     }
 
     /*
@@ -567,7 +568,7 @@ public class ImageMarking extends Application {
         StackPane lineColorPickerPane = new StackPane(lineColorPicker);
         lineColorPickerPane.setAlignment(Pos.TOP_RIGHT);
 
-        jfxListView = new JFXListView();
+        jfxListView = new JFXListView<>();
         jfxListView.setVerticalGap(3.0);
         for (TagBlockControl tagBlock : tagBlocks) {
             addTagBlock(tagBlock);
@@ -596,11 +597,11 @@ public class ImageMarking extends Application {
      */
     private void moveTagBlock(TagBlockControl tagBlock, AnchorPane anchorPane, double x, double y) {
         tagBlock.updateBlockXY(x, y);
-        anchorPane.setTopAnchor(tagBlock, (tagBlock.getTagY() - tagBlock.getTagHeightPadding()) * zoomScale.get());
-        anchorPane.setLeftAnchor(tagBlock, (tagBlock.getTagX() - tagBlock.getTagWidthPadding()) * zoomScale.get());
+        AnchorPane.setTopAnchor(tagBlock, (tagBlock.getTagY() - tagBlock.getTagHeightPadding()) * zoomScale.get());
+        AnchorPane.setLeftAnchor(tagBlock, (tagBlock.getTagX() - tagBlock.getTagWidthPadding()) * zoomScale.get());
         if (anchorPane.getChildren().contains(tagBlock.getTextField())) {
-            anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getTagY() + tagBlock.getTagHeight() + tagBlock.getTagRadius()) * zoomScale.get());
-            anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getTagX() + tagBlock.getTagWidth() + tagBlock.getTagRadius()) * zoomScale.get());
+            AnchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getTagY() + tagBlock.getTagHeight() + tagBlock.getTagRadius()) * zoomScale.get());
+            AnchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getTagX() + tagBlock.getTagWidth() + tagBlock.getTagRadius()) * zoomScale.get());
         }
     }
 
@@ -609,14 +610,14 @@ public class ImageMarking extends Application {
      */
     private void resizeTagBlock(TagBlockControl tagBlock, AnchorPane anchorPane, double width, double height) {
         tagBlock.updateBlock(width, height);
-        anchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getTagY() + tagBlock.getTagHeight() + tagBlock.getTagRadius()) * zoomScale.get());
-        anchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getTagX() + tagBlock.getTagWidth() + tagBlock.getTagRadius()) * zoomScale.get());
+        AnchorPane.setTopAnchor(tagBlock.getTextField(), (tagBlock.getTagY() + tagBlock.getTagHeight() + tagBlock.getTagRadius()) * zoomScale.get());
+        AnchorPane.setLeftAnchor(tagBlock.getTextField(), (tagBlock.getTagX() + tagBlock.getTagWidth() + tagBlock.getTagRadius()) * zoomScale.get());
     }
 
     /*
      * 打开图片文件以及配置文件
      */
-    private void openNewImage(Stage primaryStage, ImageView imageView, AnchorPane movableAnchorPane) {
+    private void openNewImage(Stage primaryStage, ImageView imageView) {
         File newFile = getImage(primaryStage);
         if (newFile != null) {
             if (!newFile.isDirectory() && newFile.exists()) {
@@ -643,8 +644,8 @@ public class ImageMarking extends Application {
                     if (tagHeightSlider != null) {
                         tagHeightSlider.setMax(imageHeight.get());
                     }
-                    movableAnchorPane.setTopAnchor(anchorPane, 0.0);
-                    movableAnchorPane.setLeftAnchor(anchorPane, 0.0);
+                    AnchorPane.setTopAnchor(anchorPane, 0.0);
+                    AnchorPane.setLeftAnchor(anchorPane, 0.0);
                     imagePath = newFile.toPath();
                     //判断是否有同名xml文件
                     int position = imagePath.toString().lastIndexOf(".");
@@ -676,8 +677,7 @@ public class ImageMarking extends Application {
                 new FileChooser.ExtensionFilter("PNG", "*.png"),
                 new FileChooser.ExtensionFilter("All", "*.*")
         );
-        File file = fileChooser.showOpenDialog(stage);
-        return file;
+        return fileChooser.showOpenDialog(stage);
     }
 
     /*
@@ -743,7 +743,7 @@ public class ImageMarking extends Application {
     /*
      * 保存为xml文件
      */
-    private void save(File xmlFile, Stage stage) {
+    private void save(File xmlFile) {
         //dom
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         builderFactory.setIgnoringElementContentWhitespace(false);
@@ -754,24 +754,34 @@ public class ImageMarking extends Application {
             Element tagBlocksElement = document.createElement("tagblocks");
             for (TagBlockControl tagBlock : tagBlocks) {
                 Element tagBlockElement = document.createElement("tagblock");
+
                 Element x = document.createElement("x");
                 x.setTextContent(tagBlock.getTagX() + "");
+
                 Element y = document.createElement("y");
                 y.setTextContent(tagBlock.getTagY() + "");
+
                 Element width = document.createElement("width");
                 width.setTextContent(tagBlock.getTagWidth() + "");
+
                 Element height = document.createElement("height");
                 height.setTextContent(tagBlock.getTagHeight() + "");
+
                 Element widthPadding = document.createElement("widthPadding");
                 widthPadding.setTextContent(tagBlock.getTagWidthPadding() + "");
+
                 Element heightPadding = document.createElement("heightPadding");
                 heightPadding.setTextContent(tagBlock.getTagHeightPadding() + "");
+
                 Element lineColor = document.createElement("lineColor");
                 lineColor.setTextContent(tagBlock.getLineColor().toString());
+
                 Element pointColor = document.createElement("pointColor");
                 pointColor.setTextContent(tagBlock.getPointColor().toString());
+
                 Element text = document.createElement("text");
                 text.setTextContent(tagBlock.getText());
+
                 tagBlockElement.appendChild(x);
                 tagBlockElement.appendChild(y);
                 tagBlockElement.appendChild(width);
@@ -790,7 +800,7 @@ public class ImageMarking extends Application {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.transform(new DOMSource(document), new StreamResult(xmlFile));
             isChanged = false;
-            showSavedDialog(stage);
+            showSavedDialog();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -834,29 +844,29 @@ public class ImageMarking extends Application {
     /*
      * 弹出已保存提示框
      */
-    private void showSavedDialog(Stage stage) {
-        JFXAlert<Void> jfxAlert = new JFXAlert<>(stage);
+    private void showSavedDialog() {
+        JFXDialog jfxDialog = new JFXDialog();
 
         Label label = new Label("保存成功！");
         label.setStyle("-fx-font-size: 20px;");
         label.setPadding(new Insets(10, 10, 10, 10));
 
         JFXButton buttonOK = new JFXButton("好的");
-        buttonOK.setStyle(buttonStyleGreen);
+        buttonOK.setStyle(buttonStyleBlue);
         buttonOK.setMinSize(60, 30);
-        buttonOK.setOnAction((event -> jfxAlert.close()));
-        HBox hBox = new HBox(buttonOK);
-        hBox.setAlignment(Pos.BOTTOM_RIGHT);
+        buttonOK.setOnAction((event -> jfxDialog.close()));
+        buttonOK.setDisableVisualFocus(true);
+        StackPane stackPane = new StackPane(buttonOK);
+        stackPane.setAlignment(Pos.BOTTOM_RIGHT);
 
         JFXDialogLayout jfxDialogLayout = new JFXDialogLayout();
         jfxDialogLayout.setHeading(label);
-        jfxDialogLayout.setBody(hBox);
+        jfxDialogLayout.setBody(stackPane);
 
-        jfxAlert.setOverlayClose(true);
-        jfxAlert.setAnimation(JFXAlertAnimation.CENTER_ANIMATION);
-        jfxAlert.setContent(jfxDialogLayout);
-        jfxAlert.initModality(Modality.WINDOW_MODAL);
-        jfxAlert.showAndWait();
+        jfxDialog.setContent(jfxDialogLayout);
+        jfxDialog.setOverlayClose(true);
+        jfxDialog.setTransitionType(JFXDialog.DialogTransition.CENTER);
+        jfxDialog.show(root);
     }
 
     /*

@@ -36,7 +36,7 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
         getSkinnable().getTextField().focusedProperty().addListener((event) -> {
             if (!getSkinnable().getTextField().isFocused()) {
                 fadeTransition.playFromStart();
-            }else{
+            } else {
                 fadeTransition.stop();
                 fadeTransition.jumpTo(Duration.ZERO);
                 getSkinnable().getTextField().setOpacity(1.00);
@@ -111,7 +111,13 @@ public class TagBlockSkin extends SkinBase<TagBlockControl> {
                     && y > heightPadding + height - radius * 4
                     && y < heightPadding + height + radius * 4) {
                 getSkinnable().getScene().setCursor(Cursor.SE_RESIZE);
-                getSkinnable().setState(TagState.ATTEMPT_TO_RESIZE);
+                getSkinnable().setState(TagState.ATTEMPT_TO_RESIZE_RIGHT_BUTTOM);
+            } else if (x < widthPadding + radius * 4
+                    && x > 0
+                    && y < heightPadding + radius * 4
+                    && y > 0) {
+                getSkinnable().getScene().setCursor(Cursor.SE_RESIZE);
+                getSkinnable().setState(TagState.ATTEMPT_TO_RESIZE_LEFT_UP);
             } else {
                 getSkinnable().getScene().setCursor(Cursor.MOVE);
                 getSkinnable().setState(TagState.ATTEMPT_TO_MOVE);
