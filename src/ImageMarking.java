@@ -443,7 +443,8 @@ public class ImageMarking extends Application {
         tagBlock.addEventHandler(MouseEvent.MOUSE_DRAGGED, (event) -> {
             if (tagBlock.isCreationDone() && event.getButton() == MouseButton.PRIMARY) {
                 if (mouseProperty != null) {
-                    double moveBiasX = event.getScreenX() - mouseProperty.getScreenX(), moveBiasY = event.getScreenY() - mouseProperty.getScreenY();
+                    double moveBiasX = event.getScreenX() - mouseProperty.getScreenX(),
+                            moveBiasY = event.getScreenY() - mouseProperty.getScreenY();
                     switch (tagBlock.getState()) {
                         case MOVING: {
                             moveTagBlock(tagBlock, anchorPane, tagBlock.getTagX() * zoomScale.get() + moveBiasX, tagBlock.getTagY() * zoomScale.get() + moveBiasY);
