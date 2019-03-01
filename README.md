@@ -25,3 +25,13 @@
 * 图片可以在视图区域中使用鼠标滚轮进行中心缩放、拖动平移。
 * 设计一个固定位置的工作区，用于放大显示当前选中的标注框以及标注框中的文字内容。
 * 注意选中标注框时，内容列表焦点也跳到相应部位，工作区内容也更改为相应框
+
+## 软件环境
+* JDK 1.8.0_172
+* Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
+* JVM HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
+
+## 依赖 Dependency
+* JavaFx 8
+* Jfoenix 8.0.8 (https://github.com/jfoenixadmin/JFoenix)
+
